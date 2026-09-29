@@ -1,0 +1,70 @@
+# Nephoscope with the key in GCP_KEY_FILE (SPEC-0001 D-19, CA-66):
+#   GCP_KEY_FILE=/path/to/key.json docker compose up --build
+# With local emulators (see .env.example for the variables that point Nephoscope at them):
+#   docker compose --profile emulators up --build
+
+name: nephoscope
+
+services:
+  nephoscope:
+    build: .
+    image: nephoscope:local
+    # Loopback only: Nephoscope has no login (SPEC-0001 CA-19, CA-75).
+    ports:
+      - "127.0.0.1:${NEPHOSCOPE_PORT:-8080}:8080"
+    environment:
+      GOOGLE_APPLICATION_CREDENTIALS: /secrets/key.json
+      NEPHOSCOPE_READ_ONLY: ${NEPHOSCOPE_READ_ONLY:-}
+      NEPHOSCOPE_SECRET: ${NEPHOSCOPE_SECRET:-}
+      NEPHOSCOPE_LOG_LEVEL: ${NEPHOSCOPE_LOG_LEVEL:-info}
+      # Empty unless the emulators profile is in use; Nephoscope treats empty as unset.
+      FIRESTORE_EMULATOR_HOST: ${FIRESTORE_EMULATOR_HOST:-}
+      DATASTORE_EMULATOR_HOST: ${DATASTORE_EMULATOR_HOST:-}
+      PUBSUB_EMULATOR_HOST: ${PUBSUB_EMULATOR_HOST:-}
+      STORAGE_EMULATOR_HOST: ${STORAGE_EMULATOR_HOST:-}
+    volumes:
+      - type: bind
+        source: ${GCP_KEY_FILE:?Set GCP_KEY_FILE to the path of a Google Cloud key JSON file}
+        target: /secrets/key.json
+        read_only: true
+      - nephoscope-data:/data
+    read_only: true
+    tmpfs:
+      - /tmp
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    restart: unless-stopped
+
+  firestore:
+    profiles: [emulators]
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud emulators firestore start --host-port=0.0.0.0:8081
+    ports:
+      - "127.0.0.1:8081:8081"
+
+  # Firestore in Datastore mode, for the Datastore pages (SPEC-0004).
+  datastore:
+    profiles: [emulators]
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud emulators firestore start --host-port=0.0.0.0:8082 --database-mode=datastore-mode
+    ports:
+      - "127.0.0.1:8082:8082"
+
+  pubsub:
+    profiles: [emulators]
+    image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+    command: gcloud beta emulators pubsub start --host-port=0.0.0.0:8085
+    ports:
+      - "127.0.0.1:8085:8085"
+
+  storage:
+    profiles: [emulators]
+    image: fsouza/fake-gcs-server:1
+    command: -scheme http -port 4443 -external-url http://storage:4443 -public-host storage:4443
+    ports:
+      - "127.0.0.1:4443:4443"
+
+volumes:
+  nephoscope-data:

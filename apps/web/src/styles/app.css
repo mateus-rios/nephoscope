@@ -1,0 +1,282 @@
+@import "tailwindcss";
+@import "@fontsource-variable/archivo/standard.css";
+@import "@fontsource-variable/martian-mono/standard.css";
+@import "./tokens.css";
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/* Only the Nephoscope tokens exist as colors: Tailwind's default palette is removed (SPEC-0002 G6). */
+@theme {
+  --color-*: initial;
+  --font-*: initial;
+  --shadow-*: initial;
+  --radius-*: initial;
+}
+
+@theme inline {
+  --color-film: var(--film);
+  --color-sheet: var(--sheet);
+  --color-panel: var(--panel);
+  --color-well: var(--well);
+  --color-hover: var(--hover);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-construct: var(--construct);
+  --color-construct-tint: var(--construct-tint);
+  --color-construct-ink: var(--construct-ink);
+  --color-commit: var(--commit);
+  --color-commit-hover: var(--commit-hover);
+  --color-commit-ink: var(--commit-ink);
+  --color-redline: var(--redline);
+  --color-redline-hover: var(--redline-hover);
+  --color-redline-tint: var(--redline-tint);
+  --color-redline-ink: var(--redline-ink);
+  --color-warn: var(--warn);
+  --color-warn-tint: var(--warn-tint);
+  --color-warn-ink: var(--warn-ink);
+  --color-ok: var(--ok);
+  --color-ok-tint: var(--ok-tint);
+  --color-ok-ink: var(--ok-ink);
+  --color-focus: var(--focus);
+  --color-overlay: var(--overlay);
+  --color-tag-none: var(--tag-none);
+  --color-tag-gray: var(--tag-gray);
+  --color-tag-blue: var(--tag-blue);
+  --color-tag-green: var(--tag-green);
+  --color-tag-amber: var(--tag-amber);
+  --color-tag-red: var(--tag-red);
+  --color-tag-violet: var(--tag-violet);
+  --color-transparent: transparent;
+  --color-current: currentColor;
+
+  --font-sans: var(--font-ui);
+  --font-mono: var(--font-code);
+
+  /* Type roles (SPEC-0002 D-06) */
+  --text-legend: 11px;
+  --text-legend--line-height: 14px;
+  --text-meta: 12px;
+  --text-meta--line-height: 16px;
+  --text-dense: 13px;
+  --text-dense--line-height: 18px;
+  --text-body: 14px;
+  --text-body--line-height: 20px;
+  --text-section: 16px;
+  --text-section--line-height: 22px;
+  --text-page: 20px;
+  --text-page--line-height: 28px;
+
+  --radius-control: 4px;
+  --radius-menu: 6px;
+  --radius-dialog: 8px;
+  --radius-pill: 9999px;
+
+  --shadow-overlay: 0 1px 2px var(--shadow-color), 0 8px 24px -6px var(--shadow-color);
+}
+
+/* Legends: the drafting lettering of title blocks and table headers (SPEC-0002 D-06, D-17). */
+@utility legend {
+  font-size: var(--text-legend);
+  line-height: var(--text-legend--line-height);
+  font-stretch: 75%;
+  font-weight: 560;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+@utility tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility press {
+  transition: transform var(--dur-press) var(--ease-out);
+  &:active:not(:disabled):not([data-disabled]) {
+    transform: scale(0.97);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    margin: 0;
+    background: var(--film);
+    color: var(--ink);
+    font-family: var(--font-ui);
+    font-size: var(--text-body);
+    line-height: var(--text-body--line-height);
+    font-optical-sizing: auto;
+    -webkit-font-smoothing: antialiased;
+    caret-color: var(--ink);
+    /* Checkboxes and radios are graphite: the commit color means "commit" only (SPEC-0002 D-20). */
+    accent-color: var(--ink);
+  }
+
+  ::selection {
+    background: var(--construct-tint);
+    color: var(--ink);
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--rule-strong) transparent;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+    border-radius: var(--radius-control);
+  }
+
+  a {
+    color: inherit;
+    text-decoration-line: underline;
+    text-decoration-color: var(--rule-strong);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    a:hover {
+      text-decoration-color: var(--ink);
+    }
+  }
+
+  code,
+  kbd,
+  samp,
+  pre {
+    font-family: var(--font-code);
+  }
+}
+
+/*
+ * Popups built on Base UI: scale from their trigger, never from 0, exit faster than they enter
+ * (SPEC-0002 D-10, CA-13 to CA-16). Reduced motion keeps opacity only.
+ */
+@layer components {
+  .nb-popup {
+    transform-origin: var(--transform-origin);
+    transition:
+      opacity var(--dur-menu) var(--ease-out),
+      transform var(--dur-menu) var(--ease-out);
+  }
+  .nb-popup[data-starting-style],
+  .nb-popup[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  .nb-popup[data-ending-style] {
+    transition-duration: var(--dur-menu-exit);
+  }
+  .nb-popup[data-instant] {
+    transition-duration: 0ms;
+  }
+
+  .nb-tooltip {
+    transform-origin: var(--transform-origin);
+    transition:
+      opacity var(--dur-tip) var(--ease-out),
+      transform var(--dur-tip) var(--ease-out);
+  }
+  .nb-tooltip[data-starting-style],
+  .nb-tooltip[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  .nb-tooltip[data-instant] {
+    transition-duration: 0ms;
+  }
+
+  .nb-dialog {
+    transition:
+      opacity var(--dur-dialog) var(--ease-out),
+      transform var(--dur-dialog) var(--ease-out);
+  }
+  .nb-dialog[data-starting-style],
+  .nb-dialog[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  .nb-dialog[data-ending-style] {
+    transition-duration: var(--dur-dialog-exit);
+  }
+
+  .nb-sheet {
+    transition: transform var(--dur-sheet) var(--ease-drawer);
+  }
+  .nb-sheet[data-starting-style],
+  .nb-sheet[data-ending-style] {
+    transform: translateX(100%);
+  }
+  .nb-sheet[data-ending-style] {
+    transition-duration: var(--dur-sheet-exit);
+  }
+
+  .nb-backdrop {
+    transition: opacity var(--dur-dialog) var(--ease-out);
+  }
+  .nb-backdrop[data-starting-style],
+  .nb-backdrop[data-ending-style] {
+    opacity: 0;
+  }
+
+  /* Live rows: the ink appears at once and settles over one second; nothing moves (D-10). */
+  .nb-ink-fresh {
+    animation: nb-ink var(--dur-ink) var(--ease-out);
+  }
+
+  @keyframes nb-ink {
+    from {
+      background-color: var(--construct-tint);
+    }
+    to {
+      background-color: transparent;
+    }
+  }
+
+  .nb-spin {
+    animation: nb-spin 800ms linear infinite;
+  }
+
+  @keyframes nb-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nb-popup,
+  .nb-tooltip,
+  .nb-dialog {
+    transition-property: opacity;
+  }
+  .nb-popup[data-starting-style],
+  .nb-popup[data-ending-style],
+  .nb-tooltip[data-starting-style],
+  .nb-tooltip[data-ending-style],
+  .nb-dialog[data-starting-style],
+  .nb-dialog[data-ending-style] {
+    transform: none;
+  }
+  .nb-sheet {
+    transition: opacity var(--dur-sheet) var(--ease-out);
+  }
+  .nb-sheet[data-starting-style],
+  .nb-sheet[data-ending-style] {
+    transform: none;
+    opacity: 0;
+  }
+  .press:active:not(:disabled) {
+    transform: none;
+  }
+}

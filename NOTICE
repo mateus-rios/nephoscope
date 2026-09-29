@@ -1,0 +1,12 @@
+Nephoscope
+Copyright 2026 The Nephoscope Authors
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It includes third-party software under its own licenses; see THIRD_PARTY_NOTICES.txt
+(in the Docker image at /app/THIRD_PARTY_NOTICES.txt, and served by the web app at
+/third-party-notices.txt).
+
+Nephoscope is not affiliated with, endorsed by, or sponsored by Google LLC. Google Cloud
+and the names of Google Cloud products are trademarks of Google LLC, used here only to
+describe what the software works with.

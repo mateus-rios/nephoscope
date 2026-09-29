@@ -1,0 +1,144 @@
+/*
+ * Nephoscope design tokens (SPEC-0002 CA-01 to CA-05). The only file allowed to hold color literals
+ * (G6). Light theme: drafting film and graphite. Dark theme: blueprint (SPEC-0002 D-07, D-17).
+ * Every state color has one meaning (D-20); profile tags are identity, never state.
+ */
+
+:root {
+  /* Type */
+  --font-ui: "Archivo Variable", "Archivo", ui-sans-serif, system-ui, "Segoe UI", Arial, sans-serif;
+  --font-code: "Martian Mono Variable", "Martian Mono", ui-monospace, "SFMono-Regular", Consolas, monospace;
+
+  /* Motion (SPEC-0002 D-10) */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --dur-press: 160ms;
+  --dur-tip: 125ms;
+  --dur-menu: 150ms;
+  --dur-menu-exit: 100ms;
+  --dur-dialog: 200ms;
+  --dur-dialog-exit: 150ms;
+  --dur-sheet: 250ms;
+  --dur-sheet-exit: 200ms;
+  --dur-ink: 1000ms;
+
+  /* Density (SPEC-0002 D-08) */
+  --row-h: 32px;
+  --control-h: 32px;
+  --control-h-sm: 28px;
+  --control-h-lg: 36px;
+}
+
+:root[data-density="compact"] {
+  --row-h: 28px;
+  --control-h: 28px;
+}
+
+:root[data-density="comfortable"] {
+  --row-h: 40px;
+  --control-h: 36px;
+}
+
+/* Light: drafting film */
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+  --film: oklch(0.968 0.005 220);
+  --sheet: oklch(0.984 0.003 220);
+  --panel: oklch(0.952 0.006 225);
+  --well: oklch(0.94 0.007 225);
+  --hover: oklch(0.925 0.008 228);
+
+  --ink: oklch(0.255 0.014 235);
+  --ink-2: oklch(0.42 0.014 235);
+  --ink-3: oklch(0.52 0.012 235);
+  --ink-inverse: oklch(0.984 0.003 220);
+
+  --rule: oklch(0.875 0.008 230);
+  --rule-strong: oklch(0.63 0.014 230);
+
+  --construct: oklch(0.66 0.09 240);
+  --construct-tint: oklch(0.925 0.035 240);
+  --construct-ink: oklch(0.45 0.11 245);
+
+  --commit: oklch(0.5 0.19 262);
+  --commit-hover: oklch(0.45 0.19 262);
+  --commit-ink: oklch(0.985 0.004 262);
+
+  --redline: oklch(0.55 0.19 27);
+  --redline-hover: oklch(0.5 0.19 27);
+  --redline-tint: oklch(0.955 0.025 27);
+  --redline-ink: oklch(0.47 0.17 27);
+
+  --warn: oklch(0.64 0.14 66);
+  --warn-tint: oklch(0.96 0.035 80);
+  --warn-ink: oklch(0.48 0.11 62);
+
+  --ok: oklch(0.6 0.13 155);
+  --ok-tint: oklch(0.955 0.03 155);
+  --ok-ink: oklch(0.43 0.1 155);
+
+  --focus: oklch(0.55 0.15 245);
+  --overlay: oklch(0.2 0.02 240 / 0.28);
+  --shadow-color: oklch(0.25 0.02 240 / 0.14);
+
+  --tag-none: oklch(0.8 0.008 230);
+  --tag-gray: oklch(0.6 0.012 235);
+  --tag-blue: oklch(0.56 0.15 250);
+  --tag-green: oklch(0.6 0.14 155);
+  --tag-amber: oklch(0.64 0.14 66);
+  --tag-red: oklch(0.57 0.2 27);
+  --tag-violet: oklch(0.54 0.18 300);
+}
+
+/* Dark: blueprint */
+[data-theme="dark"] {
+  color-scheme: dark;
+  --film: oklch(0.215 0.032 252);
+  --sheet: oklch(0.235 0.034 252);
+  --panel: oklch(0.195 0.03 252);
+  --well: oklch(0.18 0.028 252);
+  --hover: oklch(0.27 0.036 252);
+
+  --ink: oklch(0.935 0.012 240);
+  --ink-2: oklch(0.81 0.02 240);
+  --ink-3: oklch(0.7 0.024 240);
+  --ink-inverse: oklch(0.2 0.03 252);
+
+  --rule: oklch(0.33 0.035 250);
+  --rule-strong: oklch(0.58 0.035 246);
+
+  --construct: oklch(0.66 0.08 235);
+  --construct-tint: oklch(0.31 0.05 245);
+  --construct-ink: oklch(0.8 0.09 235);
+
+  --commit: oklch(0.7 0.15 262);
+  --commit-hover: oklch(0.75 0.14 262);
+  --commit-ink: oklch(0.17 0.03 262);
+
+  --redline: oklch(0.68 0.17 27);
+  --redline-hover: oklch(0.73 0.15 27);
+  --redline-tint: oklch(0.3 0.06 27);
+  --redline-ink: oklch(0.82 0.11 27);
+
+  --warn: oklch(0.8 0.14 75);
+  --warn-tint: oklch(0.31 0.05 75);
+  --warn-ink: oklch(0.87 0.11 80);
+
+  --ok: oklch(0.75 0.13 155);
+  --ok-tint: oklch(0.29 0.045 155);
+  --ok-ink: oklch(0.84 0.1 155);
+
+  --focus: oklch(0.76 0.12 240);
+  --overlay: oklch(0.1 0.02 252 / 0.55);
+  --shadow-color: oklch(0.08 0.02 252 / 0.5);
+
+  --tag-none: oklch(0.42 0.03 250);
+  --tag-gray: oklch(0.72 0.015 240);
+  --tag-blue: oklch(0.72 0.13 250);
+  --tag-green: oklch(0.76 0.13 155);
+  --tag-amber: oklch(0.82 0.14 75);
+  --tag-red: oklch(0.7 0.17 27);
+  --tag-violet: oklch(0.72 0.14 300);
+}

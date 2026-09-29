@@ -1,0 +1,9 @@
+packages:
+  - apps/*
+  - packages/*
+
+# pnpm 11 blocks dependency install scripts unless allowed here.
+allowBuilds:
+  # Its postinstall only checks the versions of its optional CLI; the SDKs do not need it.
+  protobufjs: false
+

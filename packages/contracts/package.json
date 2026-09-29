@@ -1,0 +1,50 @@
+{
+  "name": "@nephoscope/contracts",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Schemas and types shared by the Nephoscope API and web app",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./constants": {
+      "types": "./dist/constants.d.ts",
+      "import": "./dist/constants.js"
+    },
+    "./workflows-schema": {
+      "types": "./dist/workflows-schema.d.ts",
+      "import": "./dist/workflows-schema.js"
+    },
+    "./firestore-value": {
+      "types": "./dist/firestore-value.d.ts",
+      "import": "./dist/firestore-value.js"
+    },
+    "./storage-preview": {
+      "types": "./dist/storage-preview.d.ts",
+      "import": "./dist/storage-preview.js"
+    }
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch --preserveWatchOutput",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "fast-check": "^4.10.2",
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.11"
+  },
+  "sideEffects": false
+}

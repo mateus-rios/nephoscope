@@ -1,0 +1,30 @@
+{
+  "name": "nephoscope",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Self-hosted web console for Google Cloud, driven by a service account key",
+  "license": "Apache-2.0",
+  "type": "module",
+  "packageManager": "pnpm@11.6.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "pnpm --filter @nephoscope/contracts build && pnpm --parallel --filter @nephoscope/contracts --filter @nephoscope/api --filter @nephoscope/web dev",
+    "build": "node scripts/third-party-notices.mjs && pnpm --filter @nephoscope/contracts build && pnpm --filter @nephoscope/api build && pnpm --filter @nephoscope/web build",
+    "typecheck": "pnpm --filter @nephoscope/contracts build && pnpm -r typecheck",
+    "test": "pnpm --filter @nephoscope/contracts build && pnpm -r test",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "design:detect": "impeccable detect --json apps/web/src",
+    "design:tokens": "node scripts/check-tokens.mjs",
+    "check": "pnpm lint && pnpm typecheck && pnpm test && pnpm design:tokens && pnpm design:detect",
+    "notices": "node scripts/third-party-notices.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.14",
+    "@playwright/test": "^1.63.0",
+    "impeccable": "^4.1.0",
+    "typescript": "~6.0.3"
+  }
+}
