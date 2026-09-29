@@ -5,6 +5,9 @@
   "description": "Nephoscope API: NestJS server that talks to Google Cloud and serves the web app",
   "license": "Apache-2.0",
   "type": "module",
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "build": "nest build",
     "dev": "nest start --watch --preserveWatchOutput",

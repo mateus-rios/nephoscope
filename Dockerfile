@@ -4,7 +4,9 @@
 ARG NODE_IMAGE=node:24-slim
 
 # ---- base: pnpm through corepack, pinned by packageManager in package.json -------------------
-FROM ${NODE_IMAGE} AS base
+# The build stages run on the build machine's platform: their output is JavaScript, and no
+# runtime dependency has a native addon, so one build serves every target platform.
+FROM --platform=$BUILDPLATFORM ${NODE_IMAGE} AS base
 ENV PNPM_HOME=/pnpm \
     COREPACK_ENABLE_DOWNLOAD_PROMPT=0 \
     CI=true
@@ -22,23 +24,26 @@ RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm fetch
 FROM deps AS build
 COPY . .
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm install --frozen-lockfile --offline
-RUN pnpm build
-
-# ---- prod: production dependencies of the API and the packages it uses ------------------------
-FROM deps AS prod
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
-# Every workspace manifest, so the frozen lockfile still matches; the filter installs only the API's.
-COPY apps/api/package.json apps/api/package.json
-COPY apps/web/package.json apps/web/package.json
-COPY packages/contracts/package.json packages/contracts/package.json
+# The build writes THIRD_PARTY_NOTICES.txt with `pnpm licenses`, which reads the package store.
+RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store pnpm build
+# A standalone copy of the API with only its production dependencies. A filtered install is not
+# enough: the workspace's virtual store keeps every package in the lockfile, build tools included.
+# Injecting workspace packages for this command only lets pnpm deploy, while development keeps
+# @nephoscope/contracts linked.
 RUN --mount=type=cache,id=pnpm-store,target=/pnpm/store \
-    pnpm install --prod --frozen-lockfile --offline --filter "@nephoscope/api..."
+    pnpm --config.inject-workspace-packages=true --filter @nephoscope/api deploy --prod --offline /prod/api
 
 # ---- runtime -----------------------------------------------------------------------------------
 FROM ${NODE_IMAGE} AS runtime
+ARG VERSION=dev
+ARG REVISION=unknown
 LABEL org.opencontainers.image.title="Nephoscope" \
       org.opencontainers.image.description="Self-hosted web console for Google Cloud, driven by your own keys. Not affiliated with Google." \
-      org.opencontainers.image.licenses="Apache-2.0"
+      org.opencontainers.image.licenses="Apache-2.0" \
+      org.opencontainers.image.version="${VERSION}" \
+      org.opencontainers.image.revision="${REVISION}" \
+      org.opencontainers.image.source="https://github.com/mateus-rios/nephoscope" \
+      org.opencontainers.image.url="https://github.com/mateus-rios/nephoscope"
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=8080 \
@@ -47,14 +52,7 @@ ENV NODE_ENV=production \
     METADATA_SERVER_DETECTION=ping-only
 WORKDIR /app
 
-COPY --from=prod --chown=root:root /app/node_modules ./node_modules
-COPY --from=prod --chown=root:root /app/apps/api/node_modules ./apps/api/node_modules
-COPY --from=prod --chown=root:root /app/packages/contracts/node_modules ./packages/contracts/node_modules
-COPY --from=build --chown=root:root /app/package.json ./package.json
-COPY --from=build --chown=root:root /app/packages/contracts/package.json ./packages/contracts/package.json
-COPY --from=build --chown=root:root /app/packages/contracts/dist ./packages/contracts/dist
-COPY --from=build --chown=root:root /app/apps/api/package.json ./apps/api/package.json
-COPY --from=build --chown=root:root /app/apps/api/dist ./apps/api/dist
+COPY --from=build --chown=root:root /prod/api ./apps/api
 COPY --from=build --chown=root:root /app/apps/web/dist ./apps/web/dist
 # License, notice and third-party notices (SPEC-0001 D-28); the build step generated the last one.
 COPY --from=build --chown=root:root /app/LICENSE /app/NOTICE /app/THIRD_PARTY_NOTICES.txt ./

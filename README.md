@@ -51,11 +51,12 @@ live in the `nephoscope-data` volume and survive restarts. `docker compose down 
 ## Running it without compose
 
 Use the published image, or build your own. In the commands below, replace `nephoscope` with the
-published name, `DOCKERHUB_USER/nephoscope`, to skip the build.
+published name, `masanrios/nephoscope`, to skip the build. The published image runs on
+`linux/amd64` and `linux/arm64` (Apple Silicon included).
 
 ```sh
-docker pull DOCKERHUB_USER/nephoscope   # the published image
-docker build -t nephoscope .            # or build it from this repository
+docker pull masanrios/nephoscope   # the published image
+docker build -t nephoscope .       # or build it from this repository
 ```
 
 Then run it with a key. The flags keep the port on loopback, mount the key read-only and keep the
@@ -240,12 +241,15 @@ carries it at `/app/THIRD_PARTY_NOTICES.txt`, and the app serves it at `/third-p
 
 ### Publishing the image
 
+One build serves both platforms: the build stages run on the build machine, and only the final
+stage is assembled per platform. Log in with `docker login`, then:
+
 ```sh
-docker build -t DOCKERHUB_USER/nephoscope:0.1.0 -t DOCKERHUB_USER/nephoscope:latest .
-docker push DOCKERHUB_USER/nephoscope:0.1.0
-docker push DOCKERHUB_USER/nephoscope:latest
+docker buildx build --platform linux/amd64,linux/arm64 \
+  --build-arg VERSION=0.1.0 --build-arg REVISION=$(git rev-parse HEAD) \
+  -t masanrios/nephoscope:0.1.0 -t masanrios/nephoscope:latest --push .
 ```
 
-The image declares its license in the `org.opencontainers.image.licenses` label. Keep the "not
+The image declares its license, version, commit and source repository in OCI labels. Keep the "not
 affiliated with Google" sentence in the Docker Hub description.
 

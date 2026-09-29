@@ -8,7 +8,7 @@
 | **Sistemas** | `apps/api` (NestJS) · `apps/web` (SPA React) · `packages/contracts` · imagem Docker e compose |
 | **Spec relacionada** | [SPEC-0002 — Design system](./0002-design-system.md) · todas as specs de produto (0003 a 0009) se apoiam nesta |
 | **Última atualização** | 2026-09-29 |
-| **Versão** | 0.8 |
+| **Versão** | 0.9 |
 
 ---
 
@@ -324,6 +324,9 @@ Consequências:
 - O README precisa permitir que qualquer pessoa instale e rode o Nephoscope sem ajuda (Docker, montagem da chave no Windows, macOS e Linux, perfis).
 - Nomes de produtos do Google aparecem só de forma descritiva ("para o Google Cloud"). Não há logos do Google, e o README e a página da imagem dizem que o projeto não é afiliado ao Google nem endossado por ele.
 - O modelo sem login continua válido: cada cópia serve apenas a própria máquina (D-05). Hospedar uma cópia compartilhada continua fora do escopo.
+- **A imagem é `masanrios/nephoscope`**, para `linux/amd64` e `linux/arm64`, com uma tag por versão (`0.1.0`) e `latest`. Os estágios de build rodam na plataforma da máquina de build (`--platform=$BUILDPLATFORM`), porque a saída é JavaScript e nenhuma dependência de runtime tem addon nativo; só o estágio final é montado por plataforma.
+- A imagem traz labels OCI de versão, commit (`revision`) e repositório de origem (`https://github.com/mateus-rios/nephoscope`), além da licença (D-28).
+- A API entra na imagem por `pnpm deploy --prod`, só com as próprias dependências de produção (cerca de 180 MB). Uma instalação filtrada não basta: o store virtual do workspace guarda todos os pacotes do lockfile, inclusive as ferramentas de build (775 MB). A imagem baixada tem cerca de 120 MB por plataforma.
 
 **Racional:** definição do dono.
 
@@ -711,3 +714,4 @@ Os resultados abrem a página do Nephoscope correspondente ao tipo de asset, que
 | 2026-09-28 | 0.6 | | **Implementação do M2.**<br>• D-09: família de operação `local` com progresso ao vivo e cancelamento (`POST /api/operations/{id}/cancel`).<br>• D-18: perfil `emulator_only` quando há emuladores e nenhuma chave; `DATASTORE_EMULATOR_HOST`.<br>• D-08: a falta de credenciais do Google vira `NO_CREDENTIALS`, não erro interno.<br>• Robustez: uma rejeição de promessa não tratada numa biblioteca do Google é registrada no log e não derruba o processo (achado do teste de ponta a ponta com o emulador).<br>• Limite do corpo JSON elevado para 12 MB: um documento do Firestore pode ter 1 MiB, maior como valores de fio etiquetados, e o import envia lotes de 500.<br>• SDKs em CommonJS cujas exportações são getters (Firestore) carregam pelo objeto `default`. |
 | 2026-09-28 | 0.7 | | **Nome e publicação.**<br>• D-25: o produto passa a se chamar **Nephoscope** (antes Nimbus, que coincide com um projeto open source de nuvem); pacotes, variáveis (`NEPHOSCOPE_*`), cabeçalhos, diretório de dados e imagem renomeados. O formato de `profiles.enc` não muda.<br>• D-27 revisada: imagem pública no Docker Hub e código aberto; o uso continua local.<br>• Nova D-28: licença Apache-2.0, `LICENSE`, `NOTICE` e avisos de terceiros gerados no build e servidos pela interface. |
 | 2026-09-29 | 0.8 | | CA-13: os links de objeto `/api/o/{token}` do Cloud Storage (SPEC-0006 D-11) dispensam o cabeçalho de cliente em `GET` e `HEAD`; as outras verificações continuam |
+| 2026-09-29 | 0.9 | | D-27: a imagem é publicada como `masanrios/nephoscope` para `linux/amd64` e `linux/arm64`, com tag de versão e `latest`, labels OCI de versão, commit e origem, e estágios de build na plataforma da máquina de build. A API entra por `pnpm deploy --prod`, sem as ferramentas de build. O passo de build monta o store do pnpm, que `pnpm licenses` lê para gerar os avisos de terceiros (D-28) |
