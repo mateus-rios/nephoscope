@@ -1,5 +1,6 @@
 export * from './artifacts.js';
 export * from './audit.js';
+export * from './colab.js';
 export * from './common.js';
 export * from './eventarc.js';
 export * from './firestore.js';

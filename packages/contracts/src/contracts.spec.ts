@@ -1,3 +1,4 @@
+import { readdirSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import * as constants from './constants.js';
 import * as contracts from './index.js';
@@ -34,7 +35,12 @@ describe('product registry', () => {
   });
 
   it('links every product to a spec file', () => {
-    for (const p of products) expect(p.spec, p.id).toMatch(/^000[1-9]$/);
+    const files = readdirSync(new URL('../../../docs/specs/', import.meta.url));
+    for (const p of products)
+      expect(
+        files.some((f) => f.startsWith(`${p.spec}-`)),
+        `${p.id} -> SPEC-${p.spec}`,
+      ).toBe(true);
   });
 
   it('deduplicates the permission catalog', () => {

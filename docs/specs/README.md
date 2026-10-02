@@ -39,7 +39,7 @@ Cada produto declara o nível que almeja e o seu marco.
 
 | Spec | Título | Status | Versão | Marcos |
 |---|---|---|---|---|
-| [SPEC-0001](./0001-platform.md) | Plataforma: credenciais, segurança, API, operações, canal ao vivo, runtime | Rascunho | 0.9 | M0 (todos os marcos seguintes dependem dela) |
+| [SPEC-0001](./0001-platform.md) | Plataforma: credenciais, segurança, API, operações, canal ao vivo, runtime | Rascunho | 0.10 | M0 (todos os marcos seguintes dependem dela) |
 | [SPEC-0002](./0002-design-system.md) | Design system: as três skills de design, o mundo visual da folha de desenho, tokens, movimento, componentes, portões de qualidade | Rascunho | 0.9 | M0, portões em todo marco |
 | [SPEC-0003](./0003-serverless.md) | Serverless: Cloud Run, functions, Workflows, Scheduler, Tasks, Eventarc, App Engine, API Gateway | Rascunho | 0.4 | M1, M6, M7 |
 | [SPEC-0004](./0004-firestore.md) | Firestore (completo) e modo Datastore | Rascunho | 0.3 | M2 |
@@ -48,6 +48,7 @@ Cada produto declara o nível que almeja e o seu marco.
 | [SPEC-0007](./0007-security-delivery.md) | Segurança e entrega: IAM, Secret Manager, KMS, Cloud Armor, Certificate Manager, Artifact Registry, Cloud Build, Cloud Deploy | Rascunho | 0.2 | M1 (seletor de imagem), M5 |
 | [SPEC-0008](./0008-data-compute.md) | Dados e computação: BigQuery, Cloud SQL, Memorystore, Compute Engine, VPC, balanceamento de carga, Cloud DNS, GKE | Rascunho | 0.2 | M6 |
 | [SPEC-0009](./0009-long-tail.md) | Cauda longa: console de API bruto, faturamento, cotas, recomendações e produtos L1 | Rascunho | 0.2 | M7 |
+| [SPEC-0010](./0010-colab.md) | Colab Enterprise: notebooks, runtimes, templates de runtime, execuções e agendamentos | Implementada | 0.2 | M7 (entregue antes, a pedido do dono) |
 
 ## Matriz de cobertura
 
@@ -102,6 +103,7 @@ Cada produto declara o nível que almeja e o seu marco.
 | Cauda longa | Políticas da organização (efetivas) | 0009 | L1 | M7 |
 | Cauda longa | Cloud Run worker pools e instâncias | 0009 | L1 | M7 |
 | Cauda longa | Spanner, Bigtable, AlloyDB, Batch, Vertex AI, Dataflow, Dataproc, Cloud Composer, Storage Transfer Service | 0009 | L1 | M7 |
+| Dados e IA | Colab Enterprise (notebooks, runtimes, templates, execuções, agendamentos) | 0010 | L2 | M7 (entregue antes) |
 | Cauda longa | Achados do Security Command Center, configurações do Identity-Aware Proxy, testes de conectividade | 0009 | L1 | M7 |
 | Cauda longa | Upgrade e detach de Cloud Run functions gen1 | 0003 | L2 | M7 |
 
@@ -139,3 +141,4 @@ As questões em aberto que afetam o projeto inteiro ficam em [SPEC-0001 §12](./
 | 2026-09-29 | 0.9 | | Cloud Storage (SPEC-0006 M4.3 e M4.4) entregue antes do M3; versões: SPEC-0001 0.8 e SPEC-0006 0.4 |
 | 2026-09-29 | 0.10 | | As skills de design de terceiros não são versionadas no repositório público; SPEC-0002 0.9 |
 | 2026-09-29 | 0.11 | | Imagem publicada no Docker Hub como `masanrios/nephoscope`; SPEC-0001 0.9 |
+| 2026-10-02 | 0.12 | | Nova SPEC-0010, Colab Enterprise no L2, entregue antes do M7 a pedido do dono; SPEC-0001 0.10 |

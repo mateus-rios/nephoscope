@@ -1,5 +1,6 @@
 import type { Page, Route } from '@playwright/test';
 import * as f from './fixtures';
+import * as c from './fixtures-colab';
 import * as e from './fixtures-events';
 import * as w from './fixtures-workflows';
 
@@ -9,6 +10,9 @@ const P = `/api/projects/${f.PROJECT}`;
 const R = `${P}/run`;
 const FN = `${P}/functions/locations/us-central1/functions/hello`;
 const WF = `${P}/workflows/locations/us-central1/workflows/order-flow`;
+const CO = `${P}/colab`;
+const NB = `${CO}/locations/us-central1/notebooks/${c.NOTEBOOK_ID}`;
+const EX = `${CO}/locations/us-central1/executions/${c.EXECUTION_ID}`;
 
 /** Method and path pattern to a fixture. Unknown API calls answer 404 so a test sees them. */
 const routes: [string, RegExp, Handler][] = [
@@ -52,6 +56,24 @@ const routes: [string, RegExp, Handler][] = [
   ['GET', new RegExp(`^${P}/tasks/locations/us-central1/queues/emails/tasks$`), () => f.list(e.queueTasks)],
   ['GET', new RegExp(`^${P}/eventarc/triggers$`), () => f.list(e.triggers)],
   ['GET', new RegExp(`^${P}/eventarc/providers$`), () => e.providers],
+  ['GET', new RegExp(`^${CO}/notebooks$`), () => f.list(c.notebooks)],
+  ['GET', new RegExp(`^${NB}$`), () => c.notebookDetail],
+  ['GET', new RegExp(`^${NB}/content$`), () => c.notebookDocument],
+  ['GET', new RegExp(`^${NB}/history$`), () => f.list(c.commits)],
+  ['GET', new RegExp(`^${NB}/executions$`), () => ({ ...c.executionList, truncated: [] })],
+  ['GET', new RegExp(`^${NB}/schedules$`), () => f.list(c.schedules)],
+  ['GET', new RegExp(`^${NB}/raw$`), () => ({ name: c.notebookDetail.name, labels: c.notebookDetail.labels })],
+  ['GET', new RegExp(`^${CO}/executions$`), () => c.executionList],
+  ['GET', new RegExp(`^${EX}$`), () => c.executions[0]],
+  ['GET', new RegExp(`^${EX}/output$`), () => c.executionOutput],
+  ['GET', new RegExp(`^${EX}/output/notebook$`), () => c.notebookDocument],
+  ['GET', new RegExp(`^${CO}/schedules$`), () => f.list(c.schedules)],
+  ['GET', new RegExp(`^${CO}/locations/us-central1/schedules/${c.SCHEDULE_ID}$`), () => c.schedules[0]],
+  ['GET', new RegExp(`^${CO}/locations/us-central1/schedules/${c.SCHEDULE_ID}/runs$`), () => c.executionList],
+  ['GET', new RegExp(`^${CO}/templates$`), () => f.list(c.templates)],
+  ['GET', new RegExp(`^${CO}/locations/us-central1/templates/${c.TEMPLATE_ID}$`), () => c.templates[0]],
+  ['GET', new RegExp(`^${CO}/runtimes$`), () => f.list(c.runtimes)],
+  ['GET', new RegExp(`^${CO}/locations/us-central1/runtimes/${c.RUNTIME_ID}$`), () => c.runtimes[0]],
   ['GET', new RegExp(`^${P}/metrics$`), () => f.metrics],
   ['GET', new RegExp(`^${P}/logs$`), () => f.logs],
 ];
