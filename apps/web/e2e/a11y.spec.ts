@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test } from '@playwright/test';
 import { PROJECT } from './fixtures';
+import * as colab from './fixtures-colab';
 import { EXECUTION_ID } from './fixtures-workflows';
 import { mockApi } from './mock-api';
 
@@ -22,6 +23,13 @@ const PAGES: [string, string, string][] = [
   ['tasks', `/p/${PROJECT}/tasks`, 'Cloud Tasks'],
   ['queue', `/p/${PROJECT}/tasks/us-central1/emails`, 'emails'],
   ['eventarc', `/p/${PROJECT}/eventarc`, 'Eventarc'],
+  ['colab notebooks', `/p/${PROJECT}/colab`, 'Colab Enterprise'],
+  ['colab executions', `/p/${PROJECT}/colab?tab=executions`, 'Colab Enterprise'],
+  ['colab notebook', `/p/${PROJECT}/colab/notebooks/us-central1/${colab.NOTEBOOK_ID}`, 'daily-sales.ipynb'],
+  ['colab execution', `/p/${PROJECT}/colab/executions/us-central1/${colab.EXECUTION_ID}?tab=output`, 'daily-sales'],
+  ['colab schedule', `/p/${PROJECT}/colab/schedules/us-central1/${colab.SCHEDULE_ID}`, 'Daily sales at 6'],
+  ['colab runtime', `/p/${PROJECT}/colab/runtimes/us-central1/${colab.RUNTIME_ID}`, 'Ana GPU runtime'],
+  ['colab template', `/p/${PROJECT}/colab/templates/us-central1/${colab.TEMPLATE_ID}`, 'GPU L4'],
 ];
 
 for (const theme of ['light', 'dark'] as const) {

@@ -32,4 +32,7 @@ export const sdk = {
   pubsub: lazy(() => import('@google-cloud/pubsub')),
   storage: lazy(() => import('@google-cloud/storage')),
   storageControl: lazy(() => import('@google-cloud/storage-control')),
+  // REST, not @google-cloud/aiplatform: its gRPC client parses every Vertex AI proto (SPEC-0010 D-02).
+  aiplatformRest: lazy(() => import('@googleapis/aiplatform')),
+  dataformRest: lazy(() => import('@googleapis/dataform')),
 };

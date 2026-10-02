@@ -36,6 +36,8 @@
     "@google-cloud/storage-control": "^0.12.0",
     "@google-cloud/tasks": "^7.2.0",
     "@google-cloud/workflows": "^6.1.0",
+    "@googleapis/aiplatform": "^35.0.1",
+    "@googleapis/dataform": "^21.1.0",
     "@googleapis/firebaserules": "^10.0.1",
     "@googleapis/run": "^38.1.0",
     "@googleapis/workflowexecutions": "^16.0.1",

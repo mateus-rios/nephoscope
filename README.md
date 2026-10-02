@@ -123,6 +123,8 @@ Nephoscope shows what the key may do and greys out the rest, naming the missing 
 | Browse a project | Viewer (`roles/viewer`) |
 | Enable and disable APIs | Service Usage Admin (`roles/serviceusage.serviceUsageAdmin`) |
 | Search resources from the command palette | Cloud Asset Viewer (`roles/cloudasset.viewer`), with the Cloud Asset API enabled |
+| Use Colab Enterprise: notebooks, runtimes, runs and schedules | Colab Enterprise User (`roles/aiplatform.colabEnterpriseUser`), plus write access to the bucket runs write to |
+| Manage runtime templates | Colab Enterprise Admin (`roles/aiplatform.colabEnterpriseAdmin`) |
 | Operate a product | That product's admin or developer role |
 
 Start with a sandbox project and a read-only profile until you trust a workflow.
@@ -159,7 +161,7 @@ and labels; Nephoscope says so where it matters.
 
 ## What works today
 
-Milestones M0 to M2, and Pub/Sub and Cloud Storage from M4:
+Milestones M0 to M2, Pub/Sub and Cloud Storage from M4, and Colab Enterprise:
 
 - **Cloud Run** services and jobs: deploy revisions, split traffic, roll back, run jobs with
   overrides, live executions, logs and metrics.
@@ -177,6 +179,10 @@ Milestones M0 to M2, and Pub/Sub and Cloud Storage from M4:
   and soft-deleted objects, drag-and-drop uploads of files and folders, streamed downloads with
   range requests, previews that never run what they show, metadata and holds, copy, move and
   rename, and signed URLs when the key can sign.
+- **Colab Enterprise**: notebooks with their cells, outputs and every saved version, uploads of a
+  new version that never overwrite someone else's save, runtimes and runtime templates, runs with
+  the executed notebook read back from Cloud Storage, and schedules with pause, resume and catch-up.
+  Nephoscope does not run kernels; editing and interactive runs stay in Colab.
 - **Projects**: every project the key can see, and a project home with every product, its API state
   and what the key may do in it.
 - **APIs & Services**: enabled and available APIs, enable and disable, with progress in the

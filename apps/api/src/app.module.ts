@@ -3,6 +3,7 @@ import type { NephoscopeConfig } from './core/config/config.js';
 import { CoreModule } from './core/core.module.js';
 import type { AccessToken } from './core/security/access-token.js';
 import { ArtifactsModule } from './modules/artifacts/artifacts.module.js';
+import { ColabModule } from './modules/colab/colab.module.js';
 import { DatastoreModule } from './modules/datastore/datastore.module.js';
 import { EventarcModule } from './modules/eventarc/eventarc.module.js';
 import { FirestoreModule } from './modules/firestore/firestore.module.js';
@@ -49,6 +50,7 @@ export class AppModule {
         DatastoreModule,
         PubSubModule,
         StorageModule,
+        ColabModule,
       ],
     };
   }

@@ -37,6 +37,12 @@ const PubSubSubscriptionPage = lazyRouteComponent(() => import('../products/pubs
 const PubSubSchemaPage = lazyRouteComponent(() => import('../products/pubsub/SchemaPage'), 'SchemaPage');
 const StoragePage = lazyRouteComponent(() => import('../products/storage/StoragePage'), 'StoragePage');
 const StorageBucketPage = lazyRouteComponent(() => import('../products/storage/BucketPage'), 'BucketPage');
+const ColabPage = lazyRouteComponent(() => import('../products/colab/ColabPage'), 'ColabPage');
+const ColabNotebookPage = lazyRouteComponent(() => import('../products/colab/NotebookPage'), 'NotebookPage');
+const ColabRuntimePage = lazyRouteComponent(() => import('../products/colab/RuntimePage'), 'RuntimePage');
+const ColabTemplatePage = lazyRouteComponent(() => import('../products/colab/TemplatePage'), 'TemplatePage');
+const ColabExecutionPage = lazyRouteComponent(() => import('../products/colab/ExecutionPage'), 'ExecutionPage');
+const ColabSchedulePage = lazyRouteComponent(() => import('../products/colab/SchedulePage'), 'SchedulePage');
 
 function RootLayout() {
   const theme = useSession((s) => s.theme);
@@ -96,6 +102,12 @@ const runRoutes = [
   productRoute('/pubsub/schemas/$schema', PubSubSchemaPage),
   productRoute('/storage', StoragePage),
   productRoute('/storage/$bucket', StorageBucketPage),
+  productRoute('/colab', ColabPage),
+  productRoute('/colab/notebooks/$location/$notebook', ColabNotebookPage),
+  productRoute('/colab/runtimes/$location/$runtime', ColabRuntimePage),
+  productRoute('/colab/templates/$location/$template', ColabTemplatePage),
+  productRoute('/colab/executions/$location/$execution', ColabExecutionPage),
+  productRoute('/colab/schedules/$location/$schedule', ColabSchedulePage),
 ];
 
 const kitRoute = createRoute({ getParentRoute: () => rootRoute, path: '/_kit', component: import.meta.env.DEV ? KitPage : NotFoundPage });

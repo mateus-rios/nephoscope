@@ -74,6 +74,12 @@ importers:
       '@google-cloud/workflows':
         specifier: ^6.1.0
         version: 6.1.0
+      '@googleapis/aiplatform':
+        specifier: ^35.0.1
+        version: 35.0.1
+      '@googleapis/dataform':
+        specifier: ^21.1.0
+        version: 21.1.0
       '@googleapis/firebaserules':
         specifier: ^10.0.1
         version: 10.0.1
@@ -677,6 +683,14 @@ packages:
   '@google-cloud/workflows@6.1.0':
     resolution: {integrity: sha512-OmArlNJEi4NapNj7zCps6TGwiSc8Svo0ImgvW8xb0oUb3KP3YBh9OwXNBBhc2LuMweSOasL75NbLibksmpehMw==}
     engines: {node: '>=22'}
+
+  '@googleapis/aiplatform@35.0.1':
+    resolution: {integrity: sha512-2xX8l7Ou6XRrnEECQblw1CXnuxp+FkI0gjI+0j2T1a7x0WJUog1Kvpt/31nWLW6Af6UveD8TSBzj/1RqVO4tKg==}
+    engines: {node: '>=22.0.0'}
+
+  '@googleapis/dataform@21.1.0':
+    resolution: {integrity: sha512-m2VvsKhNujEHPc3+XwPbDa8Rce6pkV7KK1xuOn+J12+v0Kz3KCuHELeCsjjVMx1fWf7HqUq8TUUBoUe80LRTwQ==}
+    engines: {node: '>=22.0.0'}
 
   '@googleapis/firebaserules@10.0.1':
     resolution: {integrity: sha512-VhtXtg1o3tRqV3LTxA2TEOjhokiJeF18rvSCaVtRxQw04pSg7hBVdWgzXZ65H9yn5eUcfZficgXPK2x6qTSbvQ==}
@@ -4342,6 +4356,18 @@ snapshots:
   '@google-cloud/workflows@6.1.0':
     dependencies:
       google-gax: 6.7.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@googleapis/aiplatform@35.0.1':
+    dependencies:
+      googleapis-common: 9.1.0
+    transitivePeerDependencies:
+      - supports-color
+
+  '@googleapis/dataform@21.1.0':
+    dependencies:
+      googleapis-common: 9.1.0
     transitivePeerDependencies:
       - supports-color
 

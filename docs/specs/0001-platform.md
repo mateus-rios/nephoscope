@@ -6,9 +6,9 @@
 | **Autor(es)** | |
 | **Revisores** | |
 | **Sistemas** | `apps/api` (NestJS) · `apps/web` (SPA React) · `packages/contracts` · imagem Docker e compose |
-| **Spec relacionada** | [SPEC-0002 — Design system](./0002-design-system.md) · todas as specs de produto (0003 a 0009) se apoiam nesta |
-| **Última atualização** | 2026-09-29 |
-| **Versão** | 0.9 |
+| **Spec relacionada** | [SPEC-0002 — Design system](./0002-design-system.md) · todas as specs de produto (0003 a 0010) se apoiam nesta |
+| **Última atualização** | 2026-10-02 |
+| **Versão** | 0.10 |
 
 ---
 
@@ -101,6 +101,7 @@ O NestJS serve a API REST e WebSocket e o SPA compilado a partir da mesma origem
   - os step entries do Workflows, via `@googleapis/workflowexecutions`;
   - upgrade e detach do Cloud Functions, via `@googleapis/cloudfunctions`;
   - o endpoint PromQL do Monitoring, via `@googleapis/monitoring`.
+- **Exceção medida:** o Colab Enterprise usa só REST (`@googleapis/aiplatform`, `@googleapis/dataform`), porque o cliente gRPC do Vertex AI acrescenta cerca de 240 MB de memória ao carregar (SPEC-0010 D-02). Um produto sem streaming pode trocar o gRPC pelo REST quando a medição mostra que o gRPC estoura a NFR-03.
 - Antes de construir um produto, comparar o documento de discovery REST com o cliente gRPC e registrar todo método que só exista em REST.
 - Nunca depender do pacote monolítico `googleapis`.
 
@@ -540,7 +541,7 @@ Um erro do Google cujo `ErrorInfo` tem `reason: SERVICE_DISABLED` (domínio `goo
 
 **CA-57** — A paleta de comandos abre com Ctrl+K ou ⌘K, sem animação, e oferece: navegação (produtos e páginas), recursos (D-21), ações da página atual, projetos, perfis e configurações. Faz correspondência aproximada e lembra as escolhas recentes.
 
-**CA-58** — Atalhos de teclado: `g` seguido de uma letra leva a um produto (`g h` home, `g a` APIs & Services, `g r` Cloud Run, `g f` functions, `g w` Workflows, `g s` Scheduler, `g d` Firestore, `g l` logs, `g m` Monitoring, `g p` Pub/Sub, `g b` Cloud Storage, `g i` IAM, `g q` BigQuery), `/` foca o filtro, `j` e `k` movem a seleção de linha, `Enter` abre, `x` seleciona uma linha, `[` alterna a barra lateral, `?` abre a folha de atalhos. Os atalhos são ignorados enquanto se digita num campo.
+**CA-58** — Atalhos de teclado: `g` seguido de uma letra leva a um produto (`g h` home, `g a` APIs & Services, `g r` Cloud Run, `g f` functions, `g w` Workflows, `g s` Scheduler, `g d` Firestore, `g l` logs, `g m` Monitoring, `g p` Pub/Sub, `g b` Cloud Storage, `g c` Colab Enterprise, `g i` IAM, `g q` BigQuery), `/` foca o filtro, `j` e `k` movem a seleção de linha, `Enter` abre, `x` seleciona uma linha, `[` alterna a barra lateral, `?` abre a folha de atalhos. Os atalhos são ignorados enquanto se digita num campo.
 
 **CA-59** — O seletor de perfil mostra o nome, o principal e a etiqueta de cor de cada perfil. A etiqueta de cor do perfil ativo também aparece como uma linha de 2 px sob a barra superior, e um perfil somente leitura mostra o selo de somente leitura.
 
@@ -715,3 +716,4 @@ Os resultados abrem a página do Nephoscope correspondente ao tipo de asset, que
 | 2026-09-28 | 0.7 | | **Nome e publicação.**<br>• D-25: o produto passa a se chamar **Nephoscope** (antes Nimbus, que coincide com um projeto open source de nuvem); pacotes, variáveis (`NEPHOSCOPE_*`), cabeçalhos, diretório de dados e imagem renomeados. O formato de `profiles.enc` não muda.<br>• D-27 revisada: imagem pública no Docker Hub e código aberto; o uso continua local.<br>• Nova D-28: licença Apache-2.0, `LICENSE`, `NOTICE` e avisos de terceiros gerados no build e servidos pela interface. |
 | 2026-09-29 | 0.8 | | CA-13: os links de objeto `/api/o/{token}` do Cloud Storage (SPEC-0006 D-11) dispensam o cabeçalho de cliente em `GET` e `HEAD`; as outras verificações continuam |
 | 2026-09-29 | 0.9 | | D-27: a imagem é publicada como `masanrios/nephoscope` para `linux/amd64` e `linux/arm64`, com tag de versão e `latest`, labels OCI de versão, commit e origem, e estágios de build na plataforma da máquina de build. A API entra por `pnpm deploy --prod`, sem as ferramentas de build. O passo de build monta o store do pnpm, que `pnpm licenses` lê para gerar os avisos de terceiros (D-28) |
+| 2026-10-02 | 0.10 | | D-03: exceção medida para produtos sem streaming, com o Colab Enterprise só em REST (SPEC-0010 D-02). CA-58: atalho `g c` |
