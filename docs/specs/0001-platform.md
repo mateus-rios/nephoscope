@@ -8,7 +8,7 @@
 | **Sistemas** | `apps/api` (NestJS) · `apps/web` (SPA React) · `packages/contracts` · imagem Docker e compose |
 | **Spec relacionada** | [SPEC-0002 — Design system](./0002-design-system.md) · todas as specs de produto (0003 a 0010) se apoiam nesta |
 | **Última atualização** | 2026-10-02 |
-| **Versão** | 0.10 |
+| **Versão** | 0.11 |
 
 ---
 
@@ -325,7 +325,7 @@ Consequências:
 - O README precisa permitir que qualquer pessoa instale e rode o Nephoscope sem ajuda (Docker, montagem da chave no Windows, macOS e Linux, perfis).
 - Nomes de produtos do Google aparecem só de forma descritiva ("para o Google Cloud"). Não há logos do Google, e o README e a página da imagem dizem que o projeto não é afiliado ao Google nem endossado por ele.
 - O modelo sem login continua válido: cada cópia serve apenas a própria máquina (D-05). Hospedar uma cópia compartilhada continua fora do escopo.
-- **A imagem é `masanrios/nephoscope`**, para `linux/amd64` e `linux/arm64`, com uma tag por versão (`0.1.0`) e `latest`. Os estágios de build rodam na plataforma da máquina de build (`--platform=$BUILDPLATFORM`), porque a saída é JavaScript e nenhuma dependência de runtime tem addon nativo; só o estágio final é montado por plataforma.
+- **A imagem é `masanrios/nephoscope`**, para `linux/amd64` e `linux/arm64`, com uma tag por versão (`0.1.0`) e `latest`. A versão que o app informa em `/api/instance` é a do `package.json` da API, que a imagem mantém ao lado do `dist`; os quatro `package.json` do monorepo sobem juntos a cada versão. Os estágios de build rodam na plataforma da máquina de build (`--platform=$BUILDPLATFORM`), porque a saída é JavaScript e nenhuma dependência de runtime tem addon nativo; só o estágio final é montado por plataforma.
 - A imagem traz labels OCI de versão, commit (`revision`) e repositório de origem (`https://github.com/mateus-rios/nephoscope`), além da licença (D-28).
 - A API entra na imagem por `pnpm deploy --prod`, só com as próprias dependências de produção (cerca de 180 MB). Uma instalação filtrada não basta: o store virtual do workspace guarda todos os pacotes do lockfile, inclusive as ferramentas de build (775 MB). A imagem baixada tem cerca de 120 MB por plataforma.
 
@@ -717,3 +717,4 @@ Os resultados abrem a página do Nephoscope correspondente ao tipo de asset, que
 | 2026-09-29 | 0.8 | | CA-13: os links de objeto `/api/o/{token}` do Cloud Storage (SPEC-0006 D-11) dispensam o cabeçalho de cliente em `GET` e `HEAD`; as outras verificações continuam |
 | 2026-09-29 | 0.9 | | D-27: a imagem é publicada como `masanrios/nephoscope` para `linux/amd64` e `linux/arm64`, com tag de versão e `latest`, labels OCI de versão, commit e origem, e estágios de build na plataforma da máquina de build. A API entra por `pnpm deploy --prod`, sem as ferramentas de build. O passo de build monta o store do pnpm, que `pnpm licenses` lê para gerar os avisos de terceiros (D-28) |
 | 2026-10-02 | 0.10 | | D-03: exceção medida para produtos sem streaming, com o Colab Enterprise só em REST (SPEC-0010 D-02). CA-58: atalho `g c` |
+| 2026-10-02 | 0.11 | | D-27: a versão informada vem do `package.json` da API (antes `npm_package_version`, que não existe no contêiner, e a imagem sempre dizia 0.1.0); versão 0.2.0 |

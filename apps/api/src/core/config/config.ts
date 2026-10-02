@@ -1,5 +1,19 @@
+import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { z } from 'zod';
+
+/**
+ * The API's own package.json version. It sits three levels above this file both in src and in
+ * dist, and the image keeps it there; npm_package_version exists only under npm scripts.
+ */
+function packageVersion(): string {
+  try {
+    const pkg = JSON.parse(readFileSync(new URL('../../../package.json', import.meta.url), 'utf8')) as { version?: unknown };
+    return typeof pkg.version === 'string' ? pkg.version : 'unknown';
+  } catch {
+    return 'unknown';
+  }
+}
 
 const booleanFlag = z
   .enum(['true', 'false', '1', '0', 'yes', 'no', ''])
@@ -98,7 +112,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): NephoscopeConf
       pubsub: e.PUBSUB_EMULATOR_HOST ?? null,
       storage: e.STORAGE_EMULATOR_HOST ?? null,
     },
-    version: process.env.npm_package_version ?? '0.1.0',
+    version: packageVersion(),
   };
 }
 

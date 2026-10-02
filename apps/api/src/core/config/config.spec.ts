@@ -9,6 +9,12 @@ describe('loadConfig', () => {
     expect(config.readOnly).toBe(false);
   });
 
+  it('reports the version of the API package, which the image keeps beside dist', async () => {
+    const { readFile } = await import('node:fs/promises');
+    const pkg = JSON.parse(await readFile(new URL('../../../package.json', import.meta.url), 'utf8')) as { version: string };
+    expect(loadConfig({}).version).toBe(pkg.version);
+  });
+
   it('treats empty values as unset, as compose forwards them', () => {
     const config = loadConfig({
       FIRESTORE_EMULATOR_HOST: '',
