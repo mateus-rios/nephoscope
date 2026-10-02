@@ -252,8 +252,8 @@ stage is assembled per platform. Log in with `docker login`, then:
 
 ```sh
 docker buildx build --platform linux/amd64,linux/arm64 \
-  --build-arg VERSION=0.1.0 --build-arg REVISION=$(git rev-parse HEAD) \
-  -t masanrios/nephoscope:0.1.0 -t masanrios/nephoscope:latest --push .
+  --build-arg VERSION=0.2.0 --build-arg REVISION=$(git rev-parse HEAD) \
+  -t masanrios/nephoscope:0.2.0 -t masanrios/nephoscope:latest --push .
 ```
 
 The image declares its license, version, commit and source repository in OCI labels. Keep the "not

@@ -39,7 +39,7 @@ Cada produto declara o nível que almeja e o seu marco.
 
 | Spec | Título | Status | Versão | Marcos |
 |---|---|---|---|---|
-| [SPEC-0001](./0001-platform.md) | Plataforma: credenciais, segurança, API, operações, canal ao vivo, runtime | Rascunho | 0.10 | M0 (todos os marcos seguintes dependem dela) |
+| [SPEC-0001](./0001-platform.md) | Plataforma: credenciais, segurança, API, operações, canal ao vivo, runtime | Rascunho | 0.11 | M0 (todos os marcos seguintes dependem dela) |
 | [SPEC-0002](./0002-design-system.md) | Design system: as três skills de design, o mundo visual da folha de desenho, tokens, movimento, componentes, portões de qualidade | Rascunho | 0.9 | M0, portões em todo marco |
 | [SPEC-0003](./0003-serverless.md) | Serverless: Cloud Run, functions, Workflows, Scheduler, Tasks, Eventarc, App Engine, API Gateway | Rascunho | 0.4 | M1, M6, M7 |
 | [SPEC-0004](./0004-firestore.md) | Firestore (completo) e modo Datastore | Rascunho | 0.3 | M2 |
@@ -142,3 +142,4 @@ As questões em aberto que afetam o projeto inteiro ficam em [SPEC-0001 §12](./
 | 2026-09-29 | 0.10 | | As skills de design de terceiros não são versionadas no repositório público; SPEC-0002 0.9 |
 | 2026-09-29 | 0.11 | | Imagem publicada no Docker Hub como `masanrios/nephoscope`; SPEC-0001 0.9 |
 | 2026-10-02 | 0.12 | | Nova SPEC-0010, Colab Enterprise no L2, entregue antes do M7 a pedido do dono; SPEC-0001 0.10 |
+| 2026-10-02 | 0.13 | | Versão 0.2.0 da imagem, com o Colab Enterprise; SPEC-0001 0.11 |
