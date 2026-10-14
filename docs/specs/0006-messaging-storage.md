@@ -5,11 +5,11 @@
 | **Status** | Rascunho |
 | **Autor(es)** | |
 | **Revisores** | |
-| **Sistemas** | `apps/api/src/modules/{pubsub,storage,filestore}` · `apps/web/src/products/{pubsub,storage,filestore}` |
-| **SDKs** | `@google-cloud/pubsub` (cliente de alto nível e os clientes `v1` de baixo nível Publisher, Subscriber e Schema) · `@google-cloud/storage` · `@google-cloud/storage-control` · `@google-cloud/filestore` |
+| **Sistemas** | `apps/api/src/modules/{pubsub,storage,kit}` · `apps/web/src/products/{pubsub,storage,kit}` |
+| **SDKs** | `@google-cloud/pubsub` (cliente de alto nível e os clientes `v1` de baixo nível Publisher, Subscriber e Schema) · `@google-cloud/storage` · `@google-cloud/storage-control` · Filestore REST v1 (SPEC-0001 D-29) |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (canal ao vivo, confirmações, regra de renderização D-22, CA-73, emuladores D-18) · [SPEC-0002](./0002-design-system.md) · [SPEC-0005](./0005-observability.md) (predefinições de métricas) · [SPEC-0004](./0004-firestore.md) (buckets de export e import) |
-| **Última atualização** | 2026-09-29 |
-| **Versão** | 0.4 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.6 |
 
 ---
 
@@ -225,6 +225,8 @@ As pré-visualizações seguem a SPEC-0001 D-22 e CA-73:
 
 Instâncias (tier, capacidade, compartilhamentos de arquivo, redes, estado), backups e snapshots: lista, detalhe e recurso bruto.
 
+Implementação: o Filestore é servido pelo kit de recursos (SPEC-0001 D-30). Instâncias e backups são listados com `locations/-`; snapshots aparecem como aba de cada instância. A aba Logs da instância filtra `resource.type="filestore_instance"`. Usa a API REST v1 pelo cliente do perfil (SPEC-0001 D-29), não o `@google-cloud/filestore`.
+
 ---
 
 ## 6. Escopo
@@ -325,7 +327,8 @@ Os não-objetivos de §4.
 **Estado.** M4.1 e M4.2 (Pub/Sub completo) foram entregues antes do M3, a pedido do dono. Automatizados contra o emulador: T-01 a T-04 (`pnpm --filter @nephoscope/api test:emulator`) e, pela interface, criar tópico e assinatura, publicar, espiar, pull and acknowledge, observar, snapshot com seek de volta (T-08, que roda no emulador) e schema com validação de mensagem, além do axe nos dois temas (`apps/web/scripts/pubsub-smoke.mjs`). T-05 a T-07, T-09 e T-10 dependem da SPEC-0001 Q-02; T-19 fica para verificação manual. M4.3 e M4.4 (Cloud Storage) foram entregues em seguida, também antes do M3.
 - Contra o `fake-gcs-server` (`pnpm --filter @nephoscope/api test:emulator`): bucket, upload em streaming com recusa de sobrescrita, navegação por prefixo, pasta, metadados, cópia e movimento, leitura por range, exclusão com falha por objeto e exclusão de bucket cheio.
 - Pela interface (`apps/web/scripts/storage-smoke.mjs`): T-11 sem o arquivo de 2 GiB, T-13 sem o MP4, download, renomear, pastas, exclusão com a quantidade digitada, a requisição de T-16 (o emulador não guarda ciclo de vida nem CORS) e a exclusão de bucket cheio, além do axe nos dois temas.
-- T-12 e T-14 a T-18 dependem da SPEC-0001 Q-02. M4.5 (Filestore) continua pendente.
+- T-12 e T-14 a T-18 dependem da SPEC-0001 Q-02.
+- M4.5 (Filestore) foi entregue pelo kit de recursos, verificado com a API simulada (testes do kit); a leitura de um projeto real depende da SPEC-0001 Q-02.
 
 ---
 
@@ -354,3 +357,5 @@ Nenhuma.
 | 2026-09-28 | 0.2 | | **Tradução para o português** (SPEC-0001 D-26) |
 | 2026-09-28 | 0.3 | | **Implementação do Pub/Sub (M4.1 e M4.2), antes do M3 a pedido do dono.**<br>• D-01: o emulador atende snapshots, seek e schemas; clientes de baixo nível com as opções resolvidas pelo de alto nível; cliente por projeto para o streaming pull.<br>• D-03: grants do dead letter adicionados pela página.<br>• D-04: prazo de 5 s no pull; confirmação do aviso uma vez por assinatura; dados como texto só quando UTF-8 válido.<br>• D-05: label `created-by: nimbus`; as listas escondem as assinaturas de observação.<br>• Estado dos cenários no plano de entrega. |
 | 2026-09-29 | 0.4 | | **Implementação do Cloud Storage (M4.3 e M4.4).**<br>• D-09: endpoint do emulador passado explicitamente; lacunas do `fake-gcs-server`.<br>• D-10: tamanho na aba de métricas; exclusão de bucket cheio com contagem até 1.000.000 e operação local cancelável; bloqueio de retenção com metageração; IAM com `etag`.<br>• D-11: links de objeto `/api/o/{token}`; upload sem parser de JSON e com `ifGenerationMatch: 0`; pastas; versões.<br>• D-12: HTML, SVG e XML como código-fonte, servidos como texto e como anexo; política por resposta.<br>• Caminhos em `apps/api/src/modules`; estado dos cenários no plano de entrega. |
+| 2026-10-14 | 0.5 | | **Filestore (M4.5).** D-13 servido pelo kit de recursos da SPEC-0001 D-30, em REST (D-29); instâncias e backups com `locations/-`, snapshots como aba da instância, aba Logs. Estado no plano de entrega |
+| 2026-10-14 | 0.6 | | Sincronização final do M7 (SPEC-0009 D-07): sem mudanças além da 0.5. |

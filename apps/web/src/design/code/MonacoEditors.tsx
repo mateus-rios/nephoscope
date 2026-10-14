@@ -58,6 +58,8 @@ export interface CodeEditorProps {
   label: string;
   /** Validates and completes the text against this JSON Schema (YAML or JSON). */
   jsonSchema?: { uri: string; schema: unknown };
+  /** Runs the text with Ctrl+Enter (Cmd+Enter on macOS): queries in the explorers. */
+  onRun?: () => void;
 }
 
 export function CodeEditorImpl({
@@ -72,6 +74,7 @@ export function CodeEditorImpl({
   onCursorLine,
   label,
   jsonSchema,
+  onRun,
 }: CodeEditorProps) {
   const theme = useMonacoTheme();
   const editorRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
@@ -82,8 +85,12 @@ export function CodeEditorImpl({
   const emitted = useRef<string[]>([]);
 
   const [modelUri, setModelUri] = useState<string | null>(null);
+  // The latest handler, read when the key binding fires, so the binding is added once.
+  const runRef = useRef(onRun);
+  runRef.current = onRun;
   const onMount: OnMount = (editor) => {
     editorRef.current = editor;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.Enter, () => runRef.current?.());
     setModelUri(editor.getModel()?.uri.toString() ?? null);
     editor.onDidChangeCursorPosition((e) => onCursorLine?.(e.position.lineNumber));
   };

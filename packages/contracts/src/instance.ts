@@ -40,6 +40,20 @@ export const PrefsSchema = z.object({
   pageSize: z.number().int().min(25).max(500).default(50),
   pinnedProducts: z.array(z.string()).default([]),
   pinnedProjects: z.array(z.string()).default([]),
+  /** BigQuery explorer: projects shown besides the active one (SPEC-0008 D-01). */
+  bigqueryProjects: z.array(z.string().max(64)).max(50).default(['bigquery-public-data']),
+  /** BigQuery ceiling of bytes billed per query; 10 GiB unless changed (SPEC-0008 D-02). */
+  bigqueryMaxBytes: z
+    .number()
+    .int()
+    .min(1)
+    .max(Number.MAX_SAFE_INTEGER)
+    .default(10 * 1024 ** 3),
+  /** Billing export table the Costs page reads, `project.dataset.table`; empty when not set (SPEC-0009 D-02). */
+  billingExportTable: z
+    .string()
+    .regex(/^$|^[a-z][-a-z0-9.:]{4,62}[a-z0-9]\.[A-Za-z0-9_]{1,1024}\.[A-Za-z0-9_]{1,1024}$/)
+    .default(''),
 });
 export type Prefs = z.infer<typeof PrefsSchema>;
 

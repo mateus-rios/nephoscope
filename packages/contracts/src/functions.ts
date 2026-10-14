@@ -96,3 +96,63 @@ export const FunctionIdSchema = z
   .min(1)
   .max(63)
   .regex(/^[A-Za-z]([-_A-Za-z0-9]*[A-Za-z0-9])?$/, 'Letters, digits, hyphens and underscores');
+
+// ---- Gen1 upgrade and detach (SPEC-0003 D-18, M7) --------------------------------------------
+
+export const upgradeSteps = ['setup', 'redirect', 'rollback', 'commit', 'abort'] as const;
+export type UpgradeStep = (typeof upgradeSteps)[number];
+
+export interface FunctionUpgradeView {
+  /** `upgradeInfo.upgradeState` of the Functions v2 API, or null when the function is not gen1. */
+  state: string | null;
+  /** The Cloud Run service of the 2nd gen copy, once set up. */
+  copyService: string | null;
+  /** Where requests go right now, in a sentence. */
+  traffic: string;
+  /** Steps the state allows, in the order they are usually taken. */
+  steps: UpgradeStep[];
+  /** Why no step is possible, when none is. */
+  blocked: string | null;
+}
+
+export const UpgradeStepSchema = z.object({
+  /** Event-driven functions may need the service account their new Eventarc trigger uses. */
+  triggerServiceAccount: z.string().email().optional(),
+  /** Commit and abort delete something, so they need the function id typed (SPEC-0001 D-13). */
+  confirm: z.string().max(200).optional(),
+});
+export type UpgradeStepBody = z.infer<typeof UpgradeStepSchema>;
+
+/** The guided sequence of SPEC-0003 D-18: what each upgrade state allows and where traffic goes. */
+export function upgradePlan(state: string | null): Pick<FunctionUpgradeView, 'traffic' | 'steps' | 'blocked'> {
+  const gen1 = 'All traffic goes to the 1st gen function.';
+  const copy = 'All traffic goes to the 2nd gen copy; the 1st gen function still exists and can take it back.';
+  switch (state) {
+    case 'ELIGIBLE_FOR_2ND_GEN_UPGRADE':
+      return { traffic: gen1, steps: ['setup'], blocked: null };
+    case 'SETUP_FUNCTION_UPGRADE_CONFIG_SUCCESSFUL':
+      return { traffic: `${gen1} A 2nd gen copy is ready to take it.`, steps: ['redirect', 'abort'], blocked: null };
+    case 'SETUP_FUNCTION_UPGRADE_CONFIG_ERROR':
+      return { traffic: gen1, steps: ['setup', 'abort'], blocked: null };
+    case 'REDIRECT_FUNCTION_UPGRADE_TRAFFIC_SUCCESSFUL':
+      return { traffic: copy, steps: ['commit', 'rollback'], blocked: null };
+    case 'REDIRECT_FUNCTION_UPGRADE_TRAFFIC_ERROR':
+      return { traffic: gen1, steps: ['redirect', 'abort'], blocked: null };
+    case 'ROLLBACK_FUNCTION_UPGRADE_TRAFFIC_ERROR':
+      return { traffic: copy, steps: ['rollback'], blocked: null };
+    case 'COMMIT_FUNCTION_UPGRADE_ERROR':
+      return { traffic: copy, steps: ['commit'], blocked: null };
+    case 'COMMIT_FUNCTION_UPGRADE_ERROR_ROLLBACK_SAFE':
+      return { traffic: copy, steps: ['commit', 'rollback'], blocked: null };
+    case 'ABORT_FUNCTION_UPGRADE_ERROR':
+      return { traffic: gen1, steps: ['abort'], blocked: null };
+    case 'UPGRADE_OPERATION_IN_PROGRESS':
+      return { traffic: 'A step is running; traffic stays where it was until it ends.', steps: [], blocked: 'A step is in progress.' };
+    case 'INELIGIBLE_FOR_UPGRADE_UNTIL_REDEPLOYMENT':
+      return { traffic: gen1, steps: [], blocked: 'Redeploy the function on a supported runtime before upgrading it.' };
+    case null:
+      return { traffic: 'This function already runs on Cloud Run.', steps: [], blocked: 'Only 1st gen functions are upgraded.' };
+    default:
+      return { traffic: gen1, steps: [], blocked: `Nephoscope does not know the upgrade state ${state}.` };
+  }
+}

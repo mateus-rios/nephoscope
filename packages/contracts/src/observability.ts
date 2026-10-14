@@ -34,8 +34,8 @@ export const LogEntrySchema = z.object({
 export type LogEntry = z.infer<typeof LogEntrySchema>;
 
 export const LogQuerySchema = z.object({
-  /** The resource's base filter (SPEC-0003 CA-30). */
-  filter: z.string().min(1).max(20_000),
+  /** The resource's base filter (SPEC-0003 CA-30), or the Logs Explorer query; empty matches every entry. */
+  filter: z.string().max(20_000).default(''),
   /** Extra LQL typed by the user. */
   extra: z.string().max(20_000).optional(),
   minSeverity: LogSeveritySchema.optional(),
@@ -53,7 +53,7 @@ export interface LogPage {
 
 /** `logging.tail` params (SPEC-0005 D-03). */
 export const LogTailParamsSchema = z.object({
-  filter: z.string().min(1).max(20_000),
+  filter: z.string().max(20_000).default(''),
 });
 export type LogTailParams = z.infer<typeof LogTailParamsSchema>;
 
@@ -75,6 +75,8 @@ export const metricPresetKinds = [
   'pubsub-topic',
   'pubsub-subscription',
   'storage-bucket',
+  'gce-instance',
+  'cloudsql-instance',
 ] as const;
 export const MetricPresetKindSchema = z.enum(metricPresetKinds);
 export type MetricPresetKind = z.infer<typeof MetricPresetKindSchema>;

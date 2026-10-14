@@ -5,11 +5,11 @@
 | **Status** | Rascunho |
 | **Autor(es)** | |
 | **Revisores** | |
-| **Sistemas** | `apps/api/src/products/{iam,secretmanager,kms,armor,certmanager,artifactregistry,cloudbuild,clouddeploy}` · os `apps/web/src/products/*` correspondentes |
-| **SDKs** | `@google-cloud/resource-manager` (política de IAM do projeto, ancestralidade) · `@googleapis/iam` (contas de serviço, chaves, papéis, permissões) · `@google-cloud/iam` (políticas de negação) · `@google-cloud/policy-troubleshooter` · `@google-cloud/secret-manager` · `@google-cloud/kms` · `@google-cloud/compute` (políticas de segurança, backend services) · `@google-cloud/certificate-manager` · `@google-cloud/artifact-registry` · `@google-cloud/containeranalysis` · `@google-cloud/cloudbuild` · `@google-cloud/deploy` |
+| **Sistemas** | `apps/api/src/modules/{iam,secrets,kms,armor,registry,delivery}` · `packages/contracts/src/kit-catalog.ts` (coleções L1, SPEC-0001 D-30) · `apps/web/src/products/{iam,secrets,kms,armor,registry,delivery}` |
+| **SDKs** | Nenhum pacote novo: todas as APIs deste marco são chamadas por REST com o cliente autenticado do perfil (SPEC-0001 D-29). Endpoints: Resource Manager v3, IAM v1 e v2 (negação), Policy Troubleshooter v3, Secret Manager v1 (global e `secretmanager.{location}.rep.googleapis.com`), Cloud KMS v1, Compute v1 (políticas de segurança, backend services e buckets), Certificate Manager v1, Artifact Registry v1, Container Analysis v1, Cloud Build v1 e v2, Cloud Deploy v1 |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (sondagem de capacidades D-11, operações D-09, auditoria D-14, perfis D-04) · [SPEC-0003](./0003-serverless.md) (seletor de imagem D-17, segredos nos deploys) · [SPEC-0005](./0005-observability.md) (logs, tail ao vivo) · [SPEC-0008](./0008-data-compute.md) (os balanceadores de carga que o Cloud Armor protege) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.2 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.4 |
 
 ---
 
@@ -104,6 +104,8 @@ Quando uma chave JSON é criada:
 - ela é mostrada para download **uma única vez**, com um aviso sobre a segurança de chaves;
 - o Nephoscope oferece **"Add as a Nephoscope profile"**, que a guarda criptografada (SPEC-0001 CA-05) sem que a chave passe pelo navegador.
 
+**Implementação.** A chave criada fica só na memória do servidor por **10 minutos**, sob um identificador aleatório de 32 bytes; a resposta da criação traz os metadados da chave e o identificador, nunca o material. Com o identificador, o usuário pode fazer **uma** das duas coisas, uma vez: baixar o JSON (resposta `no-store`, auditada como revelação) ou adicioná-lo como perfil. Depois disso, ou quando o prazo acaba, o identificador deixa de valer. Esse download é a **única exceção** à SPEC-0001 CA-06, e só acontece por clique explícito.
+
 **Racional:** criar uma chave de escopo estreito para o próprio Nephoscope é uma necessidade comum, e fazer isso num passo evita baixar arquivos de chave.
 
 ### D-03 — Papéis
@@ -127,7 +129,7 @@ Quando uma chave JSON é criada:
 
 ### D-06 — Secret Manager: segredos globais e regionais
 
-- **Onde os segredos ficam:** segredos globais e segredos regionais, estes atendidos por **endpoints regionais**. A fábrica de clientes cria um cliente por endpoint (SPEC-0001 D-23).
+- **Onde os segredos ficam:** segredos globais e segredos regionais, estes atendidos por **endpoints regionais** (`secretmanager.{location}.rep.googleapis.com`). As chamadas são REST (SPEC-0001 D-29), então cada requisição escolhe o endpoint pela location do segredo.
 - **Segredos:**
   - listar com replicação, labels, expiração, agenda de rotação, tópicos de notificação, quantidade de versões e última versão habilitada;
   - criar com replicação (automática, ou gerenciada pelo usuário com locations e chaves KMS), labels, anotações, expiração, rotação (período, próxima vez, tópicos) e destruição adiada de versões;
@@ -162,7 +164,7 @@ Quando uma chave JSON é criada:
 
 ### D-09 — Editor de regras do Cloud Armor
 
-Políticas globais usam `SecurityPoliciesClient`, e as regionais `RegionSecurityPoliciesClient`. Toda mudança é uma operação do Compute, acompanhada pelo adaptador dela (SPEC-0001 D-09).
+Políticas globais usam `global/securityPolicies` e as regionais `regions/{r}/securityPolicies` da API REST do Compute (SPEC-0001 D-29). Toda mudança é uma operação do Compute, acompanhada pelo adaptador dela (SPEC-0001 D-09).
 
 - **Lista de políticas:** nome, tipo (backend, edge, network), escopo (global ou região), quantidade de regras, alvos anexados, adaptive protection, labels.
 - **Tabela de regras,** ordenada por prioridade: prioridade, ação (permitir, negar com status, banimento por taxa, throttle, redirecionar), condição (faixas de IP ou expressão CEL), modo preview, descrição.
@@ -175,6 +177,7 @@ Políticas globais usam `SecurityPoliciesClient`, e as regionais `RegionSecurity
 - **Reordenação** por arrastar e soltar (dnd kit):
   - as prioridades são únicas, então o Nephoscope calcula um plano de mudanças de prioridade (mantendo intervalos de 10 e passando por prioridades temporárias livres quando necessário);
   - **mostra o plano antes de aplicá-lo** e depois o aplica regra a regra.
+  - **Implementação:** o plano é calculado no navegador para revisão e de novo no servidor para a aplicação (`reorderPlan` em `packages/contracts`). Cada passo copia a regra para a prioridade nova e depois remove a antiga, esperando a operação do Compute de cada um. A confirmação é digitar o número de passos. A aplicação inteira é uma operação local (SPEC-0001 D-09) que pode ser cancelada **entre passos**: um passo começado sempre termina, para que nenhuma regra fique em duas prioridades. Depois de um cancelamento, as regras ficam como os passos já aplicados as deixaram, o que pode incluir uma regra numa prioridade temporária; a página recarrega a política e mostra essa ordem.
 - **Anexos:**
   - anexar ou desanexar políticas de backend e de edge a backend services globais e regionais (e políticas de edge a backend buckets);
   - uma visão de "políticas efetivas" por backend service.
@@ -202,7 +205,7 @@ Certificados, mapas de certificado e as suas entradas, autorizações de DNS e c
 - **Imagens Docker:** URI, tags, tamanho, horários de upload e de build.
 - **Excluir** uma versão ou tag (digitado).
 - **Vulnerabilidades** de um digest de imagem, quando o Container Analysis está habilitado: contagem por severidade e a lista de achados (L1).
-- **"Deploy to Cloud Run"** a partir de uma imagem, que abre o formulário de deploy da SPEC-0003 com o digest.
+- **"Deploy to Cloud Run"** a partir de uma imagem, que abre o formulário de deploy da SPEC-0003 com o digest (a página do Cloud Run recebe a imagem no parâmetro `deployImage` da URL, SPEC-0003 D-17).
 - **IAM** nos repositórios.
 
 ### D-12 — Cloud Build no L2+, com logs ao vivo
@@ -211,8 +214,10 @@ Certificados, mapas de certificado e as suas entradas, autorizações de DNS e c
   - listar entre locations globais e regionais, com filtro por estado, gatilho e tag;
   - página do build: passos com estado e tempos, substituições, origem, imagens, artefatos, opções, conta de serviço e logs.
 - **Logs ao vivo** de builds em andamento vêm:
-  - do Cloud Logging, por um tail ao vivo compartilhado (SPEC-0005 D-03), quando o build registra lá;
-  - senão, do objeto de log do build no Cloud Storage, lido de forma incremental no canal `build.logs`.
+  - do objeto de log do build no Cloud Storage, lido de forma incremental (requisições com `Range`) no canal `build.logs`, quando o build tem um bucket de logs;
+  - senão (`CLOUD_LOGGING_ONLY`), do Cloud Logging, pelo painel de logs com o tail ao vivo compartilhado (SPEC-0005 D-03) e o filtro `resource.type="build" resource.labels.build_id="{id}"`.
+  - O objeto do Cloud Storage vem primeiro porque é o log completo do build, na ordem dos passos, e não gasta a cota de tail do Cloud Logging.
+- **Lista:** por location, com um seletor que inclui "All locations" (fan-out em `global` e nas regiões, SPEC-0001 D-17).
 - **Ações do build:** tentar de novo; cancelar; aprovar ou rejeitar builds que esperam aprovação.
 - **Gatilhos:**
   - listar com evento, repositório, filtro de branch ou tag, arquivo de configuração e estado;
@@ -226,6 +231,7 @@ Certificados, mapas de certificado e as suas entradas, autorizações de DNS e c
 - **Alvos:** lista.
 - **Releases:** lista com estado de renderização (criar releases é L1: exige configuração skaffold e código).
 - **Rollouts:** estado por alvo; aprovar e rejeitar; avançar; tentar de novo um job que falhou; cancelar; **promover** um release para o próximo alvo.
+  - O próximo alvo é o estágio depois do rollout bem-sucedido mais adiantado do release; promover só fica disponível quando o release foi renderizado.
 - **Execuções de automação:** L1.
 
 ---
@@ -323,6 +329,8 @@ Todos rodam contra o projeto sandbox da SPEC-0001 Q-02.
 | M5.3 | Cloud Armor e Certificate Manager | M0 (a topologia de balanceamento da SPEC-0008 liga a ele depois) |
 | M5.4 | Artifact Registry (completo), Cloud Build, Cloud Deploy | Seletor de imagem do M1 |
 
+**Estado.** O M5 está implementado. Verificado com a API simulada: testes unitários (plano de reordenação, token de confirmação do Artifact Registry, CRC32C, mapeamento e "Used by" de segredos, assinaturas do KMS com chaves RSA, EC e Ed25519 geradas no teste, mapeamento de builds, gatilhos, pipelines e rollouts, próximo alvo, caminhos permitidos da aba Permissions) e testes do Playwright com capturas, mais o axe nos dois temas em 20 telas novas. T-01 a T-17 contra um projeto real dependem da SPEC-0001 Q-02.
+
 ---
 
 ## 11. Riscos e questões em aberto
@@ -348,3 +356,5 @@ Nenhuma.
 |---|---|---|---|
 | 2026-09-28 | 0.1 | | Versão inicial, exportada do plano aprovado e da verificação das APIs (clientes do Cloud Armor e operações do Compute): D-01 a D-13, CA-01 a CA-13, NFR-01 a NFR-03, T-01 a T-17, R-01 a R-04 |
 | 2026-09-28 | 0.2 | | **Tradução para o português** (SPEC-0001 D-26) |
+| 2026-10-14 | 0.3 | | **Implementação do M5.**<br>• SDKs: REST pela SPEC-0001 D-29, sem pacotes novos.<br>• D-02: a chave nova fica 10 minutos no servidor sob um identificador; um download (auditado) ou um perfil; exceção única à SPEC-0001 CA-06.<br>• D-06: endpoints regionais escolhidos por requisição.<br>• D-09: plano calculado nos dois lados, aplicado como operação local cancelável.<br>• D-11: "Deploy to Cloud Run" pelo parâmetro `deployImage`.<br>• D-12: o objeto de log do Cloud Storage vem primeiro; Cloud Logging para `CLOUD_LOGGING_ONLY`; lista por location com "All locations".<br>• D-13: regra do próximo alvo.<br>• D-05, D-08 L1, D-10, D-12 L1 e D-13 L1 pelo kit de recursos (SPEC-0001 D-30).<br>• Estado no plano de entrega. |
+| 2026-10-14 | 0.4 | | Sincronização final do M7 (SPEC-0009 D-07): a página da política do Cloud Armor passou a mostrar um só commit (SPEC-0002 D-18) e deixou de piscar a barra de nova ordem ao abrir. |

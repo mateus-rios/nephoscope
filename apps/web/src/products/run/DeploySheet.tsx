@@ -226,10 +226,12 @@ interface DeploySheetProps {
   /** The current service; null to create a new one. */
   service: RunService | null;
   readOnlyReason: string | null;
+  /** Image to start from, such as an Artifact Registry digest (SPEC-0007 D-11). */
+  initialImage?: string | null;
 }
 
 /** "Deploy revision" and "Create service" (SPEC-0003 D-02, CA-03, T-01). */
-export function DeploySheet({ projectId, open, onOpenChange, service, readOnlyReason }: DeploySheetProps) {
+export function DeploySheet({ projectId, open, onOpenChange, service, readOnlyReason, initialImage }: DeploySheetProps) {
   const create = service === null;
   const initial = useMemo(() => fromService(service), [service]);
   const [f, setF] = useState<FormState>(initial);
@@ -241,11 +243,11 @@ export function DeploySheet({ projectId, open, onOpenChange, service, readOnlyRe
 
   useEffect(() => {
     if (open) {
-      setF(initial);
+      setF(initialImage ? { ...initial, image: initialImage } : initial);
       setDigest(null);
       setTouched(false);
     }
-  }, [open, initial]);
+  }, [open, initial, initialImage]);
 
   const set = <K extends keyof FormState>(k: K, v: FormState[K]) => setF((prev) => ({ ...prev, [k]: v }));
   const errors = validate(f, create);

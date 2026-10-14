@@ -276,7 +276,31 @@
     transform: none;
     opacity: 0;
   }
+  /* A running state keeps its icon and label; the icon stops turning (SPEC-0002 D-10). */
+  .nb-spin {
+    animation: none;
+  }
   .press:active:not(:disabled) {
     transform: none;
   }
+}
+
+/* uPlot charts (Metrics Explorer): legend and selection in the sheet's tokens (SPEC-0002 D-14). */
+.nb-uplot .u-legend {
+  font-size: 11px;
+  color: var(--ink-2);
+  text-align: left;
+}
+.nb-uplot .u-legend .u-series th {
+  font-weight: 400;
+}
+.nb-uplot .u-legend .u-off > * {
+  opacity: 0.4;
+}
+.nb-uplot .u-select {
+  background: var(--construct-tint);
+}
+.nb-uplot .u-cursor-x,
+.nb-uplot .u-cursor-y {
+  border-color: var(--ink-3);
 }

@@ -1,3 +1,4 @@
+import type { OperationAccepted } from '@nephoscope/contracts';
 import { Link, useNavigate, useParams } from '@tanstack/react-router';
 import { ConfirmDestructive } from '../../design/ConfirmDestructive';
 import { Legend, type Note, Notes, Section } from '../../design/Drafting';
@@ -11,13 +12,14 @@ import { LogsPanel } from '../../kit/LogsPanel';
 import { MetricsPanel } from '../../kit/MetricsPanel';
 import { RawView } from '../../kit/RawView';
 import { useSearchState } from '../../kit/urlState';
-import { ApiError } from '../../lib/api';
+import { ApiError, api } from '../../lib/api';
 import { useOperations } from '../../state/operations';
 import { useActiveProfile, useInstance } from '../../state/queries';
 import { readOnlyReason } from '../run/common';
 import { deleteFunction, functionLogFilter, invokeFunction, useFunction, useFunctionRaw } from './api';
 import { FunctionStateGlyph, generationLabel } from './FunctionsPage';
 import { SourceTab } from './SourceTab';
+import { UpgradePanel } from './UpgradePanel';
 
 const TABS = [
   { key: 'overview', label: 'Overview' },
@@ -26,6 +28,7 @@ const TABS = [
   { key: 'metrics', label: 'Metrics' },
   { key: 'logs', label: 'Logs' },
   { key: 'yaml', label: 'YAML' },
+  { key: 'upgrade', label: 'Upgrade' },
 ] as const;
 type Tab = (typeof TABS)[number]['key'];
 
@@ -40,6 +43,7 @@ export function FunctionPage() {
   );
   const raw = useFunctionRaw(projectId, location, id, tab === 'yaml');
   const [deleting, setDeleting] = useSearchState<'0' | '1'>('delete', '0', ['0', '1']);
+  const [detaching, setDetaching] = useSearchState<'0' | '1'>('detach', '0', ['0', '1']);
   const navigate = useNavigate();
   const instance = useInstance();
   const { profile } = useActiveProfile();
@@ -98,9 +102,16 @@ export function FunctionPage() {
         status={<FunctionStateGlyph state={f.state} />}
         subtitle={f.description}
         menu={
-          <MenuItem onClick={() => setDeleting('1')} className="text-redline-ink" disabled={!!readOnly}>
-            Delete function
-          </MenuItem>
+          <>
+            {f.generation === 'gen2' ? (
+              <MenuItem onClick={() => setDetaching('1')} disabled={!!readOnly}>
+                Detach from Cloud Functions
+              </MenuItem>
+            ) : null}
+            <MenuItem onClick={() => setDeleting('1')} className="text-redline-ink" disabled={!!readOnly}>
+              Delete function
+            </MenuItem>
+          </>
         }
         cells={[
           { label: 'Region', value: <Mono value={f.location} />, mono: true },
@@ -108,7 +119,8 @@ export function FunctionPage() {
           { label: 'URL', value: f.url ? <Mono value={f.url} copy /> : 'None', wide: true },
           { label: 'Last deployed', value: <Timestamp iso={f.updateTime} /> },
         ]}
-        tabs={TABS}
+        // Only 1st gen functions are upgraded (SPEC-0003 D-18).
+        tabs={f.generation === 'gen1' ? TABS : TABS.filter((t) => t.key !== 'upgrade')}
         defaultTab="overview"
       >
         {(current) => {
@@ -184,9 +196,28 @@ export function FunctionPage() {
               return (
                 <RawView value={raw.data} fileName={f.id} loading={raw.isPending} error={raw.error} onRetry={() => void raw.refetch()} />
               );
+            case 'upgrade':
+              return f.generation === 'gen1' ? <UpgradePanel projectId={projectId} fn={f} readOnly={readOnly} /> : null;
           }
         }}
       </DetailLayout>
+      <ConfirmDestructive
+        open={detaching === '1'}
+        onOpenChange={(o) => setDetaching(o ? '1' : '0')}
+        title="Detach from Cloud Functions"
+        consequence={`The function is no longer managed by the Cloud Functions API. It keeps running as the Cloud Run service ${runServiceId ?? f.id}, managed there from now on. This cannot be undone.`}
+        expected={f.id}
+        confirmLabel="Detach function"
+        command={`POST https://cloudfunctions.googleapis.com/v2/projects/${projectId}/locations/${f.location}/functions/${f.id}:detachFunction`}
+        onConfirm={async (confirm) => {
+          const { operation } = await api<OperationAccepted>(
+            `/api/projects/${encodeURIComponent(projectId)}/functions/locations/${encodeURIComponent(f.location)}/functions/${encodeURIComponent(f.id)}/detach`,
+            { body: { confirm } },
+          );
+          useOperations.getState().upsert(operation);
+          void navigate({ to: runServiceId ? runServiceHref : `/p/${projectId}/functions` });
+        }}
+      />
       <ConfirmDestructive
         open={deleting === '1'}
         onOpenChange={(o) => setDeleting(o ? '1' : '0')}

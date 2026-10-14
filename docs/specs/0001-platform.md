@@ -7,8 +7,8 @@
 | **Revisores** | |
 | **Sistemas** | `apps/api` (NestJS) · `apps/web` (SPA React) · `packages/contracts` · imagem Docker e compose |
 | **Spec relacionada** | [SPEC-0002 — Design system](./0002-design-system.md) · todas as specs de produto (0003 a 0010) se apoiam nesta |
-| **Última atualização** | 2026-10-02 |
-| **Versão** | 0.11 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.16 |
 
 ---
 
@@ -101,7 +101,7 @@ O NestJS serve a API REST e WebSocket e o SPA compilado a partir da mesma origem
   - os step entries do Workflows, via `@googleapis/workflowexecutions`;
   - upgrade e detach do Cloud Functions, via `@googleapis/cloudfunctions`;
   - o endpoint PromQL do Monitoring, via `@googleapis/monitoring`.
-- **Exceção medida:** o Colab Enterprise usa só REST (`@googleapis/aiplatform`, `@googleapis/dataform`), porque o cliente gRPC do Vertex AI acrescenta cerca de 240 MB de memória ao carregar (SPEC-0010 D-02). Um produto sem streaming pode trocar o gRPC pelo REST quando a medição mostra que o gRPC estoura a NFR-03.
+- **Exceção medida:** o Colab Enterprise usa só REST (`@googleapis/aiplatform`, `@googleapis/dataform`), porque o cliente gRPC do Vertex AI acrescenta cerca de 240 MB de memória ao carregar (SPEC-0010 D-02). Um produto sem streaming pode trocar o gRPC pelo REST quando a medição mostra que o gRPC estoura a NFR-03. Os produtos do M3 ao M7 usam essa exceção, pela medição da D-29.
 - Antes de construir um produto, comparar o documento de discovery REST com o cliente gRPC e registrar todo método que só exista em REST.
 - Nunca depender do pacote monolítico `googleapis`.
 
@@ -340,6 +340,44 @@ Consequências:
 
 **Racional:** a Apache-2.0 concede licença de patentes, é a licença dos SDKs do Google que o Nephoscope distribui, tem o mecanismo de `NOTICE` para os avisos, e não concede direitos sobre o nome (seção 6). A MIT não trata de patentes; a AGPL afastaria usuários sem proteger nada, já que o Nephoscope não é hospedado como serviço.
 
+### D-29 — Do M3 em diante, produtos sem streaming falam REST pelo cliente autorizado do perfil
+
+*Aplica a exceção medida da D-03 aos produtos do M3 ao M7.*
+
+- Os produtos do M3 ao M7 que não precisam de streaming chamam as APIs REST do Google com `auth.request` do perfil (`core/gcp/rest.ts`), que já leva o projeto de cota (D-24) e cujos erros o filtro da D-08 já mapeia. Não acrescentam pacotes `@google-cloud/*` nem `@googleapis/*`.
+- Os módulos que já carregam um cliente gRPC continuam com ele quando ele cobre o caso (as séries das abas Metrics, o seletor do Artifact Registry, o tail de logs).
+- Só hosts `https://*.googleapis.com` são aceitos por esse cliente (CA-20).
+- Operações devolvidas por REST são reconhecidas pela forma da resposta e acompanhadas pela URL de consulta, guardada como nome no Google (D-09, CA-35): `google.longrunning` (`name` e `done`), Compute e Cloud SQL (`kind` e `selfLink`) e GKE (`operationType`, `status` e `selfLink`). Após um reinício, um retomador geral volta a consultar qualquer operação cuja URL seja de uma API do Google.
+
+**Medição** (2026-10-14, Node 24, carregar o pacote e criar um cliente):
+
+| Pacote | Em disco | RSS acrescentado |
+|---|---|---|
+| `@google-cloud/compute` | 110 MB | +226 MB |
+| `@google-cloud/sql` | 12 MB | +64 MB |
+| `@google-cloud/security-center` | 11 MB | +63 MB |
+| `@google-cloud/container` | 9,5 MB | +58 MB |
+| `@google-cloud/deploy` | 4,1 MB | +41 MB |
+| `@google-cloud/kms` | 4,0 MB | +40 MB |
+| `@google-cloud/cloudbuild` | 3,2 MB | +37 MB |
+| `@google-cloud/secret-manager` | 2,3 MB | +32 MB |
+
+**Racional:** só o Compute já estoura os 350 MB da NFR-03, e abrir seis produtos numa sessão somaria mais de 300 MB. Os cerca de 40 pacotes da lista original passariam da meta de imagem da NFR-10. Nenhum desses produtos usa streaming, que é o motivo do gRPC primeiro.
+
+### D-30 — Kit de recursos dirigido por descritores
+
+A D-16 ganha uma forma concreta para os produtos L1 e para ações simples de ciclo de vida:
+
+- **Descritores** em `packages/contracts/src/kit-catalog.ts`: cada coleção (`produto/coleção`) declara colunas (caminhos no JSON do recurso e o tipo de valor), estado, coleções filhas, sub-recursos extras, filtro de log e ações. A **fonte** de cada coleção, isto é, como ela é lida do Google (raiz da API, modo de listagem: caminho, curinga `locations/-` com fan-out de reserva, uma chamada por região, lista agregada do Compute, filhos dentro do pai), fica em `apps/api/src/modules/kit/sources.ts`. Um teste exige uma fonte para cada descritor e um construtor para cada ação.
+- **Rotas genéricas:** `GET /api/projects/{p}/kit/{produto}/{coleção}` (com `parent`, `region` e `pageToken`), `.../item?path=`, `.../item/extras/{extra}?path=` e `POST .../actions/{ação}`. As páginas são `/p/{p}/{produto}` e `/p/{p}/r/{produto}/{coleção}/{caminho}`, em que o caminho é o nome do recurso sem `projects/{p}/`.
+- **Caminhos conferidos:** o caminho de um item precisa casar com o padrão ancorado da coleção, cujos segmentos não aceitam `.` nem `..`; o pai de uma lista de filhos precisa casar com o padrão da coleção-mãe. Assim uma rota genérica não alcança outro caminho de API.
+- **Ações:** campos tipados (inteiro, número, texto com padrão, senha, enumeração, booleano), validados pela mesma função no navegador e no servidor antes de chamar o Google. Um campo de senha nunca é preenchido a partir do item nem aparece no comando equivalente. Ações destrutivas exigem o nome digitado (D-13). A rota é `@Mutation()`, e a auditoria registra o produto e o verbo vindos dos parâmetros (`spanner.instances.delete`). O resultado é `{ operation }`: 202 quando o Google iniciou uma operação, 200 quando a mudança terminou.
+
+- **Extensões do M6:** a fonte pode calcular campos `_` de cada item (`decorate`), filtrar a lista (`keep`, como as operações de um cluster ou as réplicas de uma instância), listar por `POST` ou ler um recurso único como lista de um item; o construtor de uma ação recebe o item sob demanda (impressões digitais do Compute, listas de flags) e o pai checado de uma coleção filha, para criar dentro dela. O descritor pode declarar uma aba Metrics (predefinição da SPEC-0005 D-07 com os rótulos preenchidos pelo item), abas desenhadas por um componente do app (`customTabs`, como a saída serial de uma VM e as flags do Cloud SQL), extras ocultos lidos por essas abas, extras de imagem com condição, e `linkTo`, para que as linhas de uma lista abram as páginas de outra coleção (as instâncias de um grupo gerenciado abrem a página da VM).
+- **Atualização ao terminar:** as consultas do kit são indexadas pela coleção (`['kit', perfil, projeto, 'produto/coleção']`); quando uma operação termina, o navegador invalida as do produto dela (CA-33).
+
+**Racional:** a cauda longa tem dezenas de coleções com a mesma forma. Um descritor por coleção, conferido por testes, entrega lista, detalhe, JSON, logs e ações com as mesmas travas do resto do app, sem uma página por produto.
+
 ---
 
 ## 6. Escopo
@@ -409,7 +447,7 @@ flowchart LR
 - Sem ele, o Nephoscope gera no primeiro uso uma chave aleatória de 32 bytes em `DATA_DIR/.secret`, com modo `0600`.
 - Se o arquivo não puder ser descriptografado (por exemplo, `NEPHOSCOPE_SECRET` mudou), o Nephoscope inicia, registra um aviso, e a página Connections explica o problema e oferece zerar os perfis salvos (confirmação digitada).
 
-**CA-06** — Nenhuma resposta de API, mensagem de WebSocket ou linha de log contém material de chave privada (`private_key`, refresh tokens, client secrets). As respostas de perfil trazem apenas os campos da CA-04.
+**CA-06** — Nenhuma resposta de API, mensagem de WebSocket ou linha de log contém material de chave privada (`private_key`, refresh tokens, client secrets). As respostas de perfil trazem apenas os campos da CA-04. **Única exceção:** o download, por clique explícito, de uma chave de conta de serviço recém-criada (SPEC-0007 D-02): uma vez, em até 10 minutos, com `Cache-Control: no-store` e auditado.
 
 **CA-07** — O perfil ativo é escolhido por aba e enviado como `x-nephoscope-profile`. Uma aba sem escolha usa o último perfil usado naquele navegador e, depois, `env`. Uma requisição que nomeia um perfil desconhecido recebe 400 `UNKNOWN_PROFILE`.
 
@@ -479,9 +517,9 @@ Um erro do Google cujo `ErrorInfo` tem `reason: SERVICE_DISABLED` (domínio `goo
 
 **CA-32** — `OperationSummary`: `id`, `profileId`, `projectId`, `product`, `kind` (por exemplo `run.service.deploy`), `family` (D-09), `resource` (`name`, `displayName`, `href`), `status` (`running`, `succeeded`, `failed`, `cancelled`, `unknown`), `progress` (0 a 100, quando a API informa), `message`, `startedAt`, `finishedAt`, `error` (um problem) e o `googleName`, nome da operação no Google.
 
-**CA-33** — O rastreador consulta cada operação em andamento pelo adaptador da família dela (D-09), com backoff de 1 s, 2 s, 5 s e depois a cada 10 s, e publica toda mudança no canal `ops`. Quando uma operação termina, o navegador invalida as consultas do recurso afetado.
+**CA-33** — O rastreador consulta cada operação em andamento pelo adaptador da família dela (D-09), com backoff de 1 s, 2 s, 5 s e depois a cada 10 s, e publica toda mudança no canal `ops`. Quando uma operação termina, o navegador invalida as consultas do recurso afetado: as chaves de consulta de uma página começam pelo id do produto da operação, e as do kit pelo prefixo `produto/`.
 
-**CA-34** — A bandeja de operações, na barra superior, mostra primeiro as operações em andamento e depois as terminadas na sessão atual. Um selo conta as operações em andamento. Cada entrada leva ao seu recurso, e as que falharam se expandem para mostrar o problem. Uma operação terminada também gera um toast: os de sucesso somem sozinhos, os de falha ficam até serem dispensados.
+**CA-34** — A bandeja de operações, na barra superior, mostra primeiro as operações em andamento e depois as terminadas na sessão atual. Um selo conta as operações em andamento. Cada entrada leva ao seu recurso, e as que falharam se expandem para mostrar o problem. Uma operação terminada também gera um toast: os de sucesso somem sozinhos, os de falha ficam até serem dispensados. **Cancelar** pela bandeja vale para operações locais (o sinal é abortado entre passos) e para operações do Google que declaram como parar, como um job do BigQuery (`jobs.cancel`); o acompanhamento vê o fim normalmente. Depois de um reinício, uma operação retomada só é cancelada pela página do recurso.
 
 **CA-35** — Os 200 últimos resumos são persistidos em `DATA_DIR/operations.json`. Após um reinício, as operações em andamento voltam a ser consultadas pelo nome da operação no Google, ou encontradas pelo `operations.list` da API, quando o produto oferece um dos dois; caso contrário, ficam `unknown`.
 
@@ -517,7 +555,7 @@ Um erro do Google cujo `ErrorInfo` tem `reason: SERVICE_DISABLED` (domínio `goo
 
 ### 8.8 Somente leitura, confirmações e auditoria
 
-**CA-48** — Com somente leitura global ou perfil ativo somente leitura, toda rota `@Mutation()` de escopo `gcp` responde **403** `READ_ONLY`, e canais ao vivo que alteram recursos (por exemplo reconhecer mensagens do Pub/Sub) são recusados. Rotas de escopo `local` (perfis, preferências) nunca são bloqueadas (D-12).
+**CA-48** — Com somente leitura global ou perfil ativo somente leitura, toda rota `@Mutation()` de escopo `gcp` responde **403** `READ_ONLY`, e canais ao vivo que alteram recursos (por exemplo reconhecer mensagens do Pub/Sub) são recusados. Rotas de escopo `local` (perfis, preferências) nunca são bloqueadas (D-12). Rotas de escopo `query` (executar SQL do BigQuery) passam pelo guard e são auditadas; o próprio serviço decide: em modo somente leitura só roda um `SELECT` sem tabela de destino, conferido por um dry run; se o dry run falhar, a consulta não roda (SPEC-0008 T-14).
 
 **CA-49** — Em modo somente leitura, a barra superior mostra um selo "Read-only", e os controles de mutação ficam desabilitados com uma dica dizendo o motivo (instância ou perfil).
 
@@ -562,7 +600,7 @@ Um erro do Google cujo `ErrorInfo` tem `reason: SERVICE_DISABLED` (domínio `goo
 
 **CA-63** — As páginas de detalhe compartilham um layout: breadcrumb, nome, estado, fatos principais (location, URL, última atualização), ações principais, um menu de transbordo e abas com URL própria.
 
-**CA-64** — Abas padrão, quando o produto as suporta: Overview, Logs (SPEC-0005), Metrics (SPEC-0005), JSON/YAML (o recurso bruto, somente leitura, com copiar e baixar), Permissions (a política de IAM do recurso, quando a API expõe `getIamPolicy`).
+**CA-64** — Abas padrão, quando o produto as suporta: Overview, Logs (SPEC-0005), Metrics (SPEC-0005), JSON/YAML (o recurso bruto, somente leitura, com copiar e baixar), Permissions (a política de IAM do recurso, quando a API expõe `getIamPolicy`). A aba Permissions usa uma rota só (`/api/projects/{p}/resource-iam?kind=&name=`) que aceita apenas os tipos de recurso de uma lista fechada (hoje segredos, key rings, chaves do KMS e repositórios do Artifact Registry), confere que o nome pertence ao projeto da rota com um padrão ancorado e recusa segmentos `.` e `..`; as edições seguem as regras de diff e etag da SPEC-0007 D-01.
 
 **CA-65** — Diálogos de criar, atualizar e executar incluem um bloco "Equivalent command" com o comando `gcloud` e a requisição REST que correspondem ao formulário.
 
@@ -718,3 +756,8 @@ Os resultados abrem a página do Nephoscope correspondente ao tipo de asset, que
 | 2026-09-29 | 0.9 | | D-27: a imagem é publicada como `masanrios/nephoscope` para `linux/amd64` e `linux/arm64`, com tag de versão e `latest`, labels OCI de versão, commit e origem, e estágios de build na plataforma da máquina de build. A API entra por `pnpm deploy --prod`, sem as ferramentas de build. O passo de build monta o store do pnpm, que `pnpm licenses` lê para gerar os avisos de terceiros (D-28) |
 | 2026-10-02 | 0.10 | | D-03: exceção medida para produtos sem streaming, com o Colab Enterprise só em REST (SPEC-0010 D-02). CA-58: atalho `g c` |
 | 2026-10-02 | 0.11 | | D-27: a versão informada vem do `package.json` da API (antes `npm_package_version`, que não existe no contêiner, e a imagem sempre dizia 0.1.0); versão 0.2.0 |
+| 2026-10-14 | 0.12 | | **REST medido e kit de recursos (M3).**<br>• Nova D-29: do M3 em diante, produtos sem streaming falam REST pelo cliente autorizado do perfil, com a medição de memória que justifica a exceção da D-03; operações REST acompanhadas pela URL de consulta e retomadas após reinício por um retomador geral.<br>• Nova D-30: kit de recursos dirigido por descritores (coleções, fontes, rotas genéricas, caminhos conferidos, ações tipadas e auditadas).<br>• CA-53: `store/saved-queries.json` em uso (consultas de log e gráficos salvos, `/api/saved/{tipo}`). |
+| 2026-10-14 | 0.13 | | **M5.**<br>• CA-06: exceção única para o download de uma chave nova (SPEC-0007 D-02).<br>• CA-64: rota compartilhada da aba Permissions, com lista fechada de tipos e conferência do nome. |
+| 2026-10-14 | 0.14 | | **M6.**<br>• D-30: extensões do kit (campos calculados, filtros, listas por POST e de item único, item e pai nos construtores de ação, abas Metrics e de componente, extras ocultos e de imagem, `linkTo`, campos de senha).<br>• CA-33: chaves de consulta por produto, inclusive no kit.<br>• CA-34: cancelar pela bandeja operações do Google que declaram como parar.<br>• CA-48: escopo `query` para SQL do BigQuery. |
+| 2026-10-14 | 0.15 | | Sincronização final do M7 (SPEC-0009 D-07): as decisões e os requisitos batem com o código das extensões do M3 a M7 (D-29, D-30, CA-06, CA-33, CA-34, CA-48, CA-64). Q-02 segue aberta e é a condição para os testes contra um projeto real de todas as specs. |
+| 2026-10-14 | 0.16 | | CA-48: o escopo `query` recusa a consulta quando o dry run falha. |

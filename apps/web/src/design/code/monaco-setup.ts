@@ -5,6 +5,7 @@ import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker';
 import TsWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker';
 import { configureMonacoYaml } from 'monaco-yaml';
 import { tokenHex as token } from '../../lib/color';
+import { registerQueryLanguages } from './languages';
 import YamlWorker from './yaml.worker?worker';
 
 /**
@@ -106,6 +107,8 @@ monaco.languages.setMonarchTokensProvider('firestore-rules', {
     ],
   },
 } as monaco.languages.IMonarchLanguage);
+
+registerQueryLanguages(monaco);
 
 /** Defines the two Nephoscope themes from the current token values (SPEC-0002 D-07). */
 export function defineThemes(): void {

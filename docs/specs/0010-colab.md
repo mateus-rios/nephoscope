@@ -8,8 +8,8 @@
 | **Sistemas** | `apps/api/src/modules/colab` · `apps/web/src/products/colab` · `packages/contracts/src/colab.ts` |
 | **SDKs** | `@googleapis/aiplatform` (REST v1) · `@googleapis/dataform` (REST v1) · `@google-cloud/storage` (saída das execuções, pelo módulo do Cloud Storage) |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (SDKs D-03, fan-out D-17, renderização D-22, memória NFR-03, somente leitura D-12, confirmações D-13, operações D-09) · [SPEC-0002](./0002-design-system.md) · [SPEC-0006](./0006-messaging-storage.md) (navegador de objetos, para a saída das execuções) · [SPEC-0009](./0009-long-tail.md) (Vertex AI no L1, que continua lá) |
-| **Última atualização** | 2026-10-02 |
-| **Versão** | 0.2 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.3 |
 
 ---
 
@@ -253,3 +253,4 @@ Os não-objetivos da §4; agendamentos de pipeline do Vertex AI; uma aba de logs
 |---|---|---|---|
 | 2026-10-02 | 0.1 | | Versão inicial com a implementação: D-01 a D-11, CA-01 a CA-08, NFR-01 e NFR-02, T-01 a T-10, R-01 a R-07, Q-01. Clientes REST por medição de memória (D-02); notebooks como repositórios do Dataform (D-04) |
 | 2026-10-02 | 0.2 | | Verificação ao vivo, só leitura, num projeto real: as cinco listas respondem nas 35 regiões sem erro; os 22 nomes de permissão da sondagem são válidos (R-06 removido); tempo de "All regions" medido em R-01 |
+| 2026-10-14 | 0.3 | | Sincronização final do M7 (SPEC-0009 D-07): nenhuma mudança de comportamento nesta spec durante o M3 a M7. Q-01 segue aberta. |

@@ -45,6 +45,7 @@ import {
   TableIcon,
   TerminalWindowIcon,
   TreeStructureIcon,
+  UsersThreeIcon,
   WindIcon,
 } from '@phosphor-icons/react';
 
@@ -60,6 +61,7 @@ export const productIcons: Record<string, Icon> = {
   tasks: QueueIcon,
   eventarc: LightningIcon,
   appengine: CloudIcon,
+  workerpools: UsersThreeIcon,
   apigateway: BrowserIcon,
   firestore: DatabaseIcon,
   bigquery: TableIcon,

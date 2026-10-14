@@ -5,11 +5,11 @@
 | **Status** | Rascunho |
 | **Autor(es)** | |
 | **Revisores** | |
-| **Sistemas** | `apps/api/src/products/{rawapi,billing,quotas,recommender,orgpolicy,...}` · os `apps/web/src/products/*` correspondentes |
-| **SDKs** | `@googleapis/discovery` e `google-auth-library` (console de API bruto) · `@google-cloud/billing` · `@google-cloud/billing-budgets` · `@google-cloud/cloudquotas` · `@google-cloud/recommender` · `@google-cloud/org-policy` · `@google-cloud/security-center` · `@google-cloud/iap` · `@google-cloud/spanner` · `@google-cloud/bigtable` · `@google-cloud/alloydb` · `@google-cloud/batch` · `@google-cloud/aiplatform` · `@google-cloud/dataflow` · `@google-cloud/dataproc` · `@google-cloud/orchestration-airflow` · `@google-cloud/storage-transfer` · `@google-cloud/network-management` · `@google-cloud/run` (worker pools, instâncias) |
+| **Sistemas** | `apps/api/src/modules/{rawapi,platform}` · `apps/api/src/modules/functions/upgrade.ts` · o kit de recursos (SPEC-0001 D-30) para os produtos L1 · `apps/web/src/products/{rawapi,governance}` |
+| **SDKs** | Nenhum pacote novo: REST pelo cliente autenticado do perfil (SPEC-0001 D-29), inclusive o Discovery Service. Cloud Billing v1, Billing Budgets v1, Cloud Quotas v1, Cloud Monitoring v3, Recommender v1, Org Policy v2, Cloud Functions v2 e as APIs dos produtos L1 |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (segurança D-05, somente leitura D-12, confirmações D-13, auditoria D-14, kit de recursos) · [SPEC-0008](./0008-data-compute.md) (BigQuery, para dados de custo) · [SPEC-0003](./0003-serverless.md) (Cloud Run) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.2 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.3 |
 
 ---
 
@@ -71,6 +71,12 @@ Nenhum console consegue dar uma página dedicada a cada produto do Google Cloud,
 
 **Racional:** os documentos de discovery descrevem toda API pública do Google, então uma única página genérica cobre tudo o que o Nephoscope não tem página dedicada, com as mesmas travas.
 
+**Implementação.**
+- O diretório e cada documento de discovery ficam uma hora em memória no servidor (até 30 documentos). A página mostra a árvore de recursos e métodos e, para cada método, um formulário dos parâmetros de caminho e de query; o JSON Schema do corpo omite campos somente de saída e aceita inteiros de 64 bits como texto ou número.
+- Duas rotas: `rawapi/read` só aceita métodos GET (permitidos em somente leitura, sem auditoria); `rawapi/write/{método}` só aceita os outros, é `@Mutation()` (bloqueada em somente leitura, auditada com o id do método como verbo) e, para DELETE, exige o último segmento do caminho digitado.
+- O servidor monta a URL pelo documento: só os parâmetros que o método declara vão ao Google; valores de caminho com `..`, `?` ou `#` são recusados; o host precisa ser do Google; redirecionamentos voltam como resposta, para que as credenciais nunca os sigam. Os cabeçalhos mostrados são os de conteúdo, `etag`, `location`, `date`, `retry-after` e `x-goog-*`; o corpo é cortado em 5 MB.
+- O histórico de 50 requisições fica no servidor (`store/arg-history.json`, SPEC-0001 CA-53), sem os corpos das APIs `secretmanager`, `iamcredentials`, `sts`, `cloudkms` e `oauth2`; respostas nunca são guardadas.
+
 ### D-02 — Faturamento (L1, com visão de custos opcional)
 
 - **As informações de faturamento do projeto:** conta de faturamento vinculada e se o faturamento está habilitado.
@@ -78,20 +84,26 @@ Nenhum console consegue dar uma página dedicada a cada produto do Google Cloud,
 - **Custos** não estão disponíveis pelas APIs de faturamento.
   - Quando o usuário configura um **dataset de export de faturamento** nas preferências, uma página Costs roda consultas prontas pelo BigQuery (SPEC-0008, com o mesmo dry run e teto de bytes): custo por serviço, por SKU e por dia no projeto.
   - Sem essa configuração, a página explica como configurar o export.
+- **Implementação:** a tabela de export fica nas preferências (`billingExportTable`, `projeto.dataset.tabela`). As consultas prontas (por serviço, por SKU, por dia; últimos 30 dias; custo líquido de créditos) usam o editor do BigQuery com o dry run, o teto e os resultados da SPEC-0008; o nome da tabela e o projeto são conferidos antes de entrar no SQL. Conta e orçamentos que o perfil não consegue ler aparecem com o motivo, sem esconder o resto.
 
 ### D-03 — Cotas (L1)
 
 - As quota infos por serviço (Cloud Quotas), com os limites atuais e as dimensões (por exemplo, região).
 - Uso e percentual onde o Cloud Monitoring os informa, destacados acima de 80%.
 - As quota preferences pendentes (pedidos de aumento) são listadas.
+- **Implementação:** o serviço é escolhido entre os habilitados no projeto (Compute Engine de início). O uso vem de `serviceruntime.googleapis.com/quota/allocation/usage` (o máximo do último dia) e vale para cotas de alocação; cotas por minuto ou por dia mostram só o limite. A partir de 100% o destaque vira erro.
 
 ### D-04 — Recomendações (L1)
 
 Recomendações e insights do projeto, dos recomendadores que se aplicam aos seus produtos (IAM, dimensionamento do Compute, recursos ociosos, Cloud Run e outros): lista e detalhe, com o impacto estimado.
 
+**Implementação:** um conjunto fixo de recomendadores: globais (política de IAM, uso do projeto, imagens ociosas), por zona onde há VMs ou discos (tipo de máquina, VMs e discos ociosos) e por região em uso (endereços ociosos, Cloud SQL ocioso ou superdimensionado, segurança do Cloud Run); e três tipos de insight globais (política de IAM, contas de serviço, firewall). Só os ativos aparecem; pares que não responderam são citados como resultado parcial.
+
 ### D-05 — Políticas da organização (L1)
 
 As políticas da organização **efetivas** do projeto, e as definidas no próprio projeto. As restrições que costumam explicar erros (compartilhamento restrito a domínio, locations permitidas, prevenção de acesso público, criação de chave de conta de serviço) aparecem primeiro.
+
+**Implementação:** a política efetiva de cada restrição disponível ao projeto é lida (dez por vez) e resumida numa linha; as restrições que costumam explicar erros vêm primeiro, depois as que restringem. O resultado fica cinco minutos no servidor; "Read again" lê de novo.
 
 **Racional:** negações por política da organização aparecem como erros confusos em outros produtos (por exemplo, ao tornar público um Cloud Run service, SPEC-0003 D-04). Mostrar a política efetiva explica esses erros.
 
@@ -187,6 +199,8 @@ Os não-objetivos de §4.
 | M7.4 | Auditoria de design do app inteiro (SPEC-0002), passada de desempenho e de acessibilidade | M1 a M6 |
 | M7.5 | Sincronização final das specs (D-07) | Tudo |
 
+**Estado.** O M7 está implementado. Os produtos L1 da D-06 e o API Gateway são coleções do kit de recursos; o upgrade e o detach de gen1 seguem a SPEC-0003 D-18. Verificado com a API simulada: testes unitários do console bruto (rotas de leitura e escrita, confirmação de DELETE, parâmetros declarados, histórico sem corpos de segredo), dos mapeamentos de faturamento, cotas e políticas, e da sequência de upgrade; testes do Playwright com capturas. A auditoria do M7.4 está na SPEC-0002 §10. T-01 a T-09 contra um projeto real dependem da SPEC-0001 Q-02.
+
 ---
 
 ## 11. Riscos e questões em aberto
@@ -200,7 +214,7 @@ Os não-objetivos de §4.
 
 ### Questões em aberto
 
-Nenhuma.
+Nenhuma. A sincronização final (D-07) leva adiante duas questões de outras specs: SPEC-0001 Q-02 (projeto para a verificação ao vivo) e SPEC-0010 Q-01 (edição de notebooks). Os status das specs continuam em Rascunho: a revisão e a verificação ao vivo cabem ao dono.
 
 ---
 
@@ -210,3 +224,4 @@ Nenhuma.
 |---|---|---|---|
 | 2026-09-28 | 0.1 | | Versão inicial, exportada do plano aprovado e do escopo "e assim por diante": D-01 a D-07, CA-01 a CA-05, NFR-01 e NFR-02, T-01 a T-09, R-01 e R-02 |
 | 2026-09-28 | 0.2 | | **Tradução para o português** (SPEC-0001 D-26) |
+| 2026-10-14 | 0.3 | | **Implementação do M7.**<br>• D-01: console bruto com rotas separadas de leitura e escrita, URL montada pelo documento, histórico de 50 requisições no servidor.<br>• D-02: tabela de export nas preferências e consultas prontas pelo editor do BigQuery.<br>• D-03: uso das cotas de alocação pelo Monitoring.<br>• D-04: recomendadores por escopo em uso.<br>• D-05: política efetiva por restrição, cinco minutos em cache.<br>• D-06: kit de recursos; gen1 pela SPEC-0003 D-18.<br>• D-07: sincronização registrada em todas as specs; Q-02 e a Q-01 da SPEC-0010 seguem abertas; status mantidos em Rascunho.<br>• SDKs: REST pela SPEC-0001 D-29. |

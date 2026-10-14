@@ -8,8 +8,8 @@
 | **Sistemas** | `apps/api/src/products/{run,functions,workflows,scheduler,tasks,eventarc,appengine,apigateway}` · os `apps/web/src/products/*` correspondentes |
 | **SDKs** | `@google-cloud/run` (v2) e `@googleapis/run` (lista global v1) · `@google-cloud/functions` (v2, mais o cliente v1 para mudanças em gen1) e `@googleapis/cloudfunctions` (upgrade e detach) · `@google-cloud/workflows` (Workflows e Executions) e `@googleapis/workflowexecutions` (step entries) · `@google-cloud/scheduler` · `@google-cloud/tasks` · `@google-cloud/eventarc` · `@google-cloud/appengine-admin` · `@google-cloud/api-gateway` |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (convenções, operações, kit de recursos) · [SPEC-0002](./0002-design-system.md) · [SPEC-0005](./0005-observability.md) (abas de logs e métricas) · [SPEC-0007](./0007-security-delivery.md) (seletor de imagem, segredos, IAM) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.4 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.7 |
 
 ---
 
@@ -215,19 +215,27 @@ Os gatilhos são listados entre locations e podem ser criados e excluídos. O fo
 
 Configurações da aplicação; services; versões com estado de atendimento, divisão de tráfego e instâncias; migrar ou dividir tráfego; iniciar e parar versões com escala manual ou básica; excluir versões. Regras de firewall, cron e regras de dispatch ficam no L1.
 
+**Implementação.** A página `/appengine` mostra a aplicação (estado, location, hostname, banco, conta de serviço, bucket) e as regras de dispatch, lidas da própria aplicação; services, versões e instâncias são coleções do kit (SPEC-0001 D-30) pela API REST do App Engine Admin. Dividir tráfego aceita frações `versão=fração` que precisam somar 1, conferidas no servidor; migrar usa `migrateTraffic`. Iniciar e parar só aparecem em versões de escala manual ou básica. Os jobs de cron são jobs do Cloud Scheduler com alvo App Engine, listados dali; não há API de cron no App Engine Admin.
+
 ### D-16 — API Gateway no L1 (M7)
 
 APIs, configurações de API e gateways: lista, detalhe e recurso bruto.
 
+**Implementação.** Coleções do kit de recursos (SPEC-0001 D-30), com as configurações como filhas de cada API.
+
 ### D-17 — Seletor de imagem mínimo no M1
 
 O formulário de deploy escolhe uma imagem nos repositórios do Artifact Registry do projeto (repositório, imagem, tag ou digest) ou aceita uma referência de imagem digitada. "Pin by digest" troca a tag pelo digest. O produto Artifact Registry completo chega no M5 (SPEC-0007).
+
+A página do Cloud Run aceita o parâmetro `deployImage` na URL: com ele, abre o formulário de criação de service já com essa imagem. É assim que o "Deploy to Cloud Run" do Artifact Registry chega aqui (SPEC-0007 D-11). Fechar o formulário remove o parâmetro.
 
 **Racional:** escolher uma imagem faz parte de todo deploy, e um seletor evita erros de digitação em caminhos de imagem longos.
 
 ### D-18 — Upgrade e detach de gen1 (M7)
 
 Os fluxos que fazem upgrade de uma function gen1 para Cloud Run function (preparar, redirecionar tráfego, reverter, confirmar, abortar) e o `detachFunction` só existem na API REST. Eles são oferecidos no M7 pelo `@googleapis/cloudfunctions`, como uma sequência guiada com o estado do tráfego visível a cada passo.
+
+**Implementação.** Pela API REST do Cloud Functions v2 com o cliente do perfil (SPEC-0001 D-29), não pelo `@googleapis/cloudfunctions`. Functions gen1 ganham a aba Upgrade: o estado (`upgradeInfo.upgradeState`), para onde vai o tráfego, a sequência preparar, redirecionar, confirmar, e só os passos que o estado permite, conferidos de novo no servidor. Confirmar (apaga a gen1) e abortar (apaga a cópia gen2) exigem o id da function digitado. Cada passo é uma operação acompanhada. Functions gen2 têm "Detach from Cloud Functions" no menu, com o id digitado; a function continua como Cloud Run service.
 
 **Racional:** úteis para migrar functions legadas, mas não necessários no dia a dia, então esperam o marco da cauda longa.
 
@@ -444,3 +452,6 @@ Nenhuma além da SPEC-0001 Q-02 (projeto sandbox para T-01 a T-20).
 | 2026-09-28 | 0.2 | | **Verificação das APIs incorporada.**<br>• D-01: as listas do Cloud Run vêm do endpoint global v1 (`@googleapis/run`), porque a v2 rejeita `locations/-`; detalhes e mutações ficam na v2.<br>• D-07: a lista de functions é a união da API v2 do Functions (`locations/-`, gen1 somente leitura) com os Cloud Run services que têm `buildConfig.functionTarget`, removendo duplicatas por `serviceConfig.service`.<br>• D-09: regras da URL de download (30 minutos, `sourceCodeGet`); upload por PUT com `application/zip` e sem `Authorization`; mudanças em gen1 pelo cliente v1.<br>• D-11: step entries pelo `@googleapis/workflowexecutions`, já que o cliente gRPC não tem nenhum; opção de histórico detalhado; a lista do Workflows tenta `locations/-` e depois faz fan-out.<br>• D-12: a lista do Scheduler tenta `locations/-` e depois faz fan-out.<br>• Nova D-18: fluxos de upgrade e detach de gen1 (só REST), no M7.<br>• Linha de SDKs atualizada.<br>• §6: worker pools e instâncias remetem à SPEC-0009.<br>• Conferido contra os pacotes mais recentes (`@google-cloud/workflows` 6.1.0 não tem step entries; `@google-cloud/run` 4.1.0 é só v2; `@google-cloud/functions` 5.1.0 não tem métodos de upgrade ou detach). |
 | 2026-09-28 | 0.3 | | **Tradução para o português** (SPEC-0001 D-26) |
 | 2026-09-28 | 0.4 | | **Implementação do M1.**<br>• CA-02: aba Testing nos Cloud Run services, com o mesmo painel de chamada das functions.<br>• CA-09: a coluna de agendamento vem dos jobs do Scheduler ativos cujo alvo é a URL `:run` do job.<br>• CA-15: functions só do Cloud Run aparecem como geração "Cloud Run" e abrem a página do service.<br>• CA-27: excluir uma task exige digitar o id.<br>• CA-13 e CA-23: "Schedule this job" e "Schedule this workflow" ficam no menu de ações da página; as abas Triggers do service, do job e do workflow listam os jobs do Scheduler e os gatilhos do Eventarc que miram o recurso.<br>• T-15: texto real do `cronstrue` para `0 */2 * * 1-5`.<br>• Rotas da API precedidas pelo produto (SPEC-0001 D-07).<br>• Verificado só com a API simulada (Vitest e Playwright); T-01 a T-20 dependem da SPEC-0001 Q-02. |
+| 2026-10-14 | 0.5 | | D-17: parâmetro `deployImage` da página do Cloud Run, usado pelo "Deploy to Cloud Run" do Artifact Registry (SPEC-0007 D-11). |
+| 2026-10-14 | 0.6 | | D-15: App Engine implementado (M6) pelo kit de recursos; cron pelo Cloud Scheduler; dispatch pela aplicação. |
+| 2026-10-14 | 0.7 | | D-16: API Gateway pelo kit de recursos. D-18: upgrade guiado e detach pela API REST v2, com os passos conferidos no servidor. Sincronização final do M7 (SPEC-0009 D-07): Q-02 da SPEC-0001 segue aberta para T-01 a T-20. |

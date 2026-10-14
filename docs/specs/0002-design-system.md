@@ -7,8 +7,8 @@
 | **Revisores** | |
 | **Sistemas** | `apps/web` (`src/design`, `src/kit`, `src/app`) · `PRODUCT.md` · `DESIGN.md` · `.claude/skills/` · `skills-lock.json` |
 | **Spec relacionada** | [SPEC-0001 — Plataforma](./0001-platform.md) (comportamento do shell e do kit de recursos) · todas as specs de produto |
-| **Última atualização** | 2026-09-29 |
-| **Versão** | 0.9 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.10 |
 
 ---
 
@@ -514,6 +514,15 @@ Comportamento do shell e do kit (SPEC-0001 §8.10 e §8.11). As telas de produto
 | **M0** | Skills instaladas (D-01); PRODUCT.md (D-05); tokens, fontes e ícones; todas as primitivas de §7.3; `/_kit`; passadas de `/impeccable typeset` e `/impeccable colorize`; DESIGN.md; portões G1 a G6 ligados ao `pnpm check` e ao CI |
 | **M1 a M7** | Portões G1 a G6 nas telas novas de cada marco. `/impeccable shape` antes de cada tela L3. O M7 acrescenta um `/impeccable audit` do app inteiro, o `improve-animations` de Emil e um `/impeccable polish` no app todo |
 
+**Estado do M7 (2026-10-14).** Uma passada limitada de auditoria, seguida de uma rodada de correções:
+- `pnpm check` verde: lint, tipos, testes, G6 (tokens: nenhuma cor literal nem travessão; 96 pares de contraste AA nos dois temas) e o detector do Impeccable sem achados.
+- O axe nos dois temas em todas as 85 telas da lista do Playwright.
+- Uma checagem em modo de desenvolvimento das 85 telas contra a D-18 (um controle de commit por view) achou duas violações, corrigidas: a página da política do Cloud Armor mostrava por um quadro a barra de nova ordem (e com ela um segundo commit) antes de sincronizar as regras, e mantinha "Add rule" como commit durante uma reordenação pendente; o painel de upgrade de functions gen1 mostrava dois passos como commit.
+- Movimento (`improve-animations`, esforço rápido): as curvas, durações, escala de 97% e saídas mais rápidas já seguiam a D-10. Com movimento reduzido, os spinners agora param (o ícone e o rótulo continuam) e o arrastar de regras do Cloud Armor deixa de deslizar.
+- Responsivo: dois campos de largura fixa maior que um celular passaram a encolher.
+- Desempenho: as páginas de produto são rotas lazy, e o Monaco e o elkjs só carregam onde são usados; o pacote de entrada é a base da aplicação (React, ícones, roteador, tabelas).
+- O DESIGN.md e o `.impeccable/design.json` foram escritos pelo procedimento `document` do Impeccable, a partir dos tokens e componentes implementados e da direção já aprovada (o mundo da folha de desenho), cumprindo a D-05.
+
 ---
 
 ## 11. Riscos e questões em aberto
@@ -546,3 +555,4 @@ Nenhuma. Mudanças na proposta de tipografia ou de cor depois das passadas de `/
 | 2026-09-28 | 0.7 | | **Portões do M2.**<br>• Editor: gramática de Security Rules própria (`firestore-rules`) no Monaco, com as cores dos tokens.<br>• O editor de diff libera os modelos na ordem certa ao fechar (antes, fechar o diálogo de revisão gerava um erro na página); a rejeição "Canceled" que o Monaco usa para o próprio trabalho interrompido é ignorada, e qualquer outra continua aparecendo.<br>• A árvore de campos usa listas aninhadas com `aria-expanded` nos botões, sem os papéis ARIA `tree`, cujo modelo de teclado ela não implementa.<br>• G5: axe nas telas do Firestore (bancos, painéis, tabela, consulta) nos dois temas, pelo script de ponta a ponta contra o emulador; sem violações.<br>• Valores escalares na árvore de campos ficam numa linha; strings quebram. |
 | 2026-09-29 | 0.8 | | **Nova marca.** O "N" dentro de um quadrado lembrava o logo do Notion; a marca passa a desenhar o próprio instrumento: o espelho redondo do nefoscópio com as graduações cardeais e uma nuvem atravessando, na cor de construção (`--construct-ink`, que segue o tema). O favicon tem a variante escura por `prefers-color-scheme`. Sem letras, legível em 16 e 20 px. |
 | 2026-09-29 | 0.9 | | D-01: as pastas das skills saem do repositório público (`.claude/skills/` no `.gitignore`), por serem trabalho de terceiros sob licenças próprias; o `skills-lock.json` continua versionado e a tabela diz como reinstalar |
+| 2026-10-14 | 0.10 | | **Auditoria do M7** (§10): portões verdes, axe em 85 telas, D-18 conferida em modo de desenvolvimento com duas correções, movimento reduzido para spinners e arrastar, DESIGN.md e sidecar escritos. Sincronização final do M7 (SPEC-0009 D-07). |

@@ -22,6 +22,7 @@ import { ProfileId } from '../../core/context/profile-id.decorator.js';
 import { ProfilesService } from '../../core/credentials/profiles.service.js';
 import { RunModule } from '../run/run.module.js';
 import { FunctionsService } from './functions.service.js';
+import { FunctionUpgradeController, FunctionUpgradeService } from './upgrade.js';
 
 const p = { schema: ProjectIdParamSchema };
 const loc = { schema: RegionSchema };
@@ -128,5 +129,9 @@ export class FunctionsController {
 }
 
 /** Cloud Run functions (SPEC-0003 §7.3). */
-@Module({ imports: [RunModule], controllers: [FunctionsController], providers: [FunctionsService] })
+@Module({
+  imports: [RunModule],
+  controllers: [FunctionsController, FunctionUpgradeController],
+  providers: [FunctionsService, FunctionUpgradeService],
+})
 export class FunctionsModule {}

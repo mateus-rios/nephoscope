@@ -1,7 +1,11 @@
 import type { Page, Route } from '@playwright/test';
 import * as f from './fixtures';
 import * as c from './fixtures-colab';
+import { dataRoutes } from './fixtures-data';
 import * as e from './fixtures-events';
+import { longTailRoutes } from './fixtures-longtail';
+import { observabilityRoutes } from './fixtures-observability';
+import { securityRoutes } from './fixtures-security';
 import * as w from './fixtures-workflows';
 
 type Handler = (url: URL, route: Route) => unknown;
@@ -16,6 +20,10 @@ const EX = `${CO}/locations/us-central1/executions/${c.EXECUTION_ID}`;
 
 /** Method and path pattern to a fixture. Unknown API calls answer 404 so a test sees them. */
 const routes: [string, RegExp, Handler][] = [
+  ...observabilityRoutes,
+  ...securityRoutes,
+  ...dataRoutes,
+  ...longTailRoutes,
   ['GET', /^\/api\/instance$/, () => f.instance],
   ['GET', /^\/api\/profiles$/, () => f.profiles],
   ['GET', /^\/api\/prefs$/, () => ({ density: 'default', pageSize: 50, pinnedProducts: [], pinnedProjects: [] })],

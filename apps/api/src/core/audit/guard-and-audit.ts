@@ -32,7 +32,8 @@ function baseEntry(
     method: req.method,
     route: req.route?.path ? String(req.route.path) : req.path,
     resource: fillResource(meta.resource, params),
-    verb: `${meta.product}.${meta.verb}`,
+    // Generic routes name the product and verb from their params, such as `:product` (SPEC-0001 D-16).
+    verb: `${fillResource(meta.product, params)}.${fillResource(meta.verb, params)}`,
   };
 }
 
