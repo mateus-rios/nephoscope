@@ -10,7 +10,6 @@ import {
 } from '@nephoscope/contracts';
 import { Link } from '@tanstack/react-router';
 import { useEffect, useRef } from 'react';
-import { Legend } from '../../design/Drafting';
 import { Field, Select } from '../../design/Form';
 import { StatusGlyph } from '../../design/Status';
 import { Tooltip } from '../../design/Tooltip';
@@ -163,19 +162,7 @@ export function durationLabel(seconds: number | null): string {
   return `${seconds} s`;
 }
 
-/** A two-column list of facts; empty values read "None". */
-export function FactList({ facts }: { facts: [string, React.ReactNode][] }) {
-  return (
-    <dl className="m-0 grid grid-cols-[minmax(10rem,auto)_1fr] gap-x-6 gap-y-1.5 px-6">
-      {facts.map(([k, v]) => (
-        <div key={k} className="contents">
-          <Legend as="dt">{k}</Legend>
-          <dd className="m-0 min-w-0 text-dense break-words text-ink">{v ?? <span className="text-ink-3">None</span>}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
+export { FactList } from '../../kit/FactList';
 
 /** The output folder of a run, linked to the Cloud Storage browser. */
 export function StorageLink({ projectId, uri }: { projectId: string; uri: string | null }) {

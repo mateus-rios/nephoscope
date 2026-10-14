@@ -5,11 +5,11 @@
 | **Status** | Rascunho |
 | **Autor(es)** | |
 | **Revisores** | |
-| **Sistemas** | `apps/api/src/products/{logging,monitoring,errorreporting,trace}` · `apps/web/src/products/{logging,monitoring,errorreporting,trace}` · `LogsPanel` e `MetricsTab` compartilhados em `apps/web/src/kit` |
-| **SDKs** | `@google-cloud/logging` (entradas, tail, configuração) · `@google-cloud/monitoring` (séries temporais, descritores de métrica, alertas, uptime, canais de notificação) · `@google-cloud/monitoring-dashboards` · `@googleapis/monitoring` (PromQL pela API Prometheus) · `@googleapis/clouderrorreporting` (v1beta1) · `@googleapis/cloudtrace` (leituras v1) |
+| **Sistemas** | `apps/api/src/modules/{observability,logging,monitoring,diagnostics}` · `apps/web/src/products/{logging,monitoring,errorreporting,trace}` · `LogsPanel`, `MetricsPanel` e `UPlotChart` compartilhados em `apps/web/src/kit` |
+| **SDKs** | `@google-cloud/logging-api` (tail) · `@google-cloud/monitoring` (séries das abas Metrics) · REST pelo cliente do perfil para o resto (SPEC-0001 D-29): Logging v2, Monitoring v3 e v1 (dashboards e PromQL), Error Reporting v1beta1, Cloud Trace v1 |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (canal ao vivo, regra de renderização D-22) · [SPEC-0002](./0002-design-system.md) (gráficos D-14, linhas ao vivo D-10) · [SPEC-0003](./0003-serverless.md) e todas as specs de produto (filtros de log e predefinições de métricas) · [SPEC-0008](./0008-data-compute.md) (BigQuery, para SQL sobre logs) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.5 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.8 |
 
 ---
 
@@ -74,7 +74,8 @@ O painel de logs (M1) recebe um filtro base do recurso (SPEC-0003 CA-30 e cada s
 - as entradas mais recentes primeiro, virtualizadas, com "Load older";
 - uma linha por entrada: timestamp, glifo de severidade e um resumo. Em entradas HTTP, o resumo é método, status, latência e URL; nas demais, é o payload de texto ou o `jsonPayload.message`;
 - uma árvore JSON expansível por entrada, em que **"Show matching"** sobre qualquer valor acrescenta `campo="valor"` ao filtro;
-- um botão de tail ao vivo (D-03), um link para a entrada e "Open in Logs Explorer". Até o Logs Explorer do Nephoscope chegar (M3), o link é "Open in Google Cloud console" e abre a mesma consulta no console do Google.
+- um botão de tail ao vivo (D-03), um link para a entrada, "Open in Logs Explorer" (o Logs Explorer do Nephoscope, com a mesma consulta) e "Open in Google Cloud console";
+- numa entrada com campo `trace`, o link "Open trace" para a página do trace (D-12).
 
 Tudo numa entrada de log é renderizado como texto (SPEC-0001 D-22).
 
@@ -111,6 +112,13 @@ Uma página completa construída sobre o painel de logs, que acrescenta:
 - uma visão de **Cloud Audit Logs** com filtros predefinidos (atividade administrativa, acesso a dados, eventos de sistema, política negada) e colunas de principal, método e recurso;
 - links do campo `trace` de uma entrada para o trace (D-12).
 
+Implementação:
+- A consulta fica na URL (`?q=`), e o painel de logs é o mesmo da D-01, em modo explorador: sem o campo de filtro extra, e "Show matching" e as facetas acrescentam a cláusula à consulta. Uma consulta vazia mostra todas as entradas.
+- A completação vem de `GET /api/projects/{p}/logging/catalog`: nomes de log do projeto e tipos de recurso monitorado, em cache por 5 minutos.
+- As consultas recentes usam o histórico de argumentos (`logs.recent:{projeto}`); as salvas, `store/saved-queries.json` (SPEC-0001 CA-53).
+- O download (`GET .../logging/download`, JSON ou CSV) lê páginas de 1.000 entradas e, diferente do painel, **espera** por uma vaga na mesma cota de 40 chamadas por minuto (D-02), porque são no máximo dez páginas seguidas. O fluxo para quando o navegador fecha a conexão, e uma falha depois do início fica escrita no fim do arquivo.
+- A visão de audit logs é uma aba própria, com o tipo de log escolhido (Admin Activity, Data Access, System Event, Policy Denied) e colunas de principal, método, recurso, resultado e serviço.
+
 ### D-05 — Log Router e armazenamento (M3, L2)
 
 | Área | Operações |
@@ -119,10 +127,18 @@ Uma página completa construída sobre o painel de logs, que acrescenta:
 | **Buckets de log** | Listar por location; criar com retenção, atualização para análise e bloqueio; atualizar a retenção; excluir e desfazer a exclusão |
 | **Views de log** | Listar, criar, excluir |
 | **Métricas baseadas em log** | Listar, criar (contador ou distribuição, filtro, extratores de label, extrator de valor, buckets), atualizar, excluir |
+| **Exclusões do projeto** | Listar, criar, atualizar, desabilitar, excluir |
+
+Implementação:
+- Sinks são criados e atualizados com `uniqueWriterIdentity=true`. A página mostra a identidade de escrita, o papel de que ela precisa no destino (Cloud Storage `roles/storage.objectCreator`, BigQuery `roles/bigquery.dataEditor`, Pub/Sub `roles/pubsub.publisher`, bucket de log `roles/logging.bucketWriter`, outro projeto `roles/logging.logWriter`) e o comando do grant. O servidor recusa mudar o `_Required` e excluir o `_Required` e o `_Default` antes de chamar o Google.
+- Buckets de log trazem os datasets vinculados do BigQuery, base do modo SQL (D-06). Um bucket excluído pode ser restaurado enquanto está em `DELETE_REQUESTED`.
+- Distribuições usam buckets exponenciais (64, fator 2, escala 0,01) por padrão; cada extrator de label declara a sua label como `STRING`.
 
 ### D-06 — SQL sobre logs passa pelo BigQuery (complemento do M6)
 
 Quando um bucket de log tem um dataset vinculado do BigQuery, o Logs Explorer oferece um modo **SQL** que roda por jobs do BigQuery com o editor da SPEC-0008. A estimativa de bytes aparece antes de rodar, e o usuário é avisado de que o BigQuery cobra. Sem dataset vinculado, o modo explica como criar um. Não existe outro caminho programático de SQL.
+
+**Implementação.** O modo é a aba **SQL** da página Logging. Ele lê os vínculos ativos dos buckets com Log Analytics, começa por uma consulta à view `_AllLogs` da última hora e usa o mesmo editor, teto de bytes e resultados do BigQuery (SPEC-0008 D-02 a D-04), com histórico próprio. Sem vínculo, mostra o caminho em Log storage e os comandos `gcloud logging buckets update --enable-analytics` e `gcloud logging links create`.
 
 **Racional:** as APIs do Logging e do Observability só gerenciam os recursos de análise; não rodam consultas.
 
@@ -145,6 +161,7 @@ Quando um bucket de log tem um dataset vinculado do BigQuery, o Logs Explorer of
 - **Controles:** agrupar por, agregação e taxa.
 - **Exibição:** os gráficos usam uPlot (SPEC-0002 D-14). Uma visão em tabela mostra o último valor de cada série.
 - **Salvar:** os gráficos podem ser salvos localmente (SPEC-0001 CA-53).
+- **Implementação:** o seletor busca nos descritores de métrica do projeto (até 20.000, em cache por 10 minutos) e gera PromQL com `buildPromQL` (`packages/contracts`): `rate` para contadores (`DELTA` e `CUMULATIVE`), `histogram_quantile` sobre `_bucket` para distribuições, o seletor puro para medidores, com agrupamento por labels e janela de taxa escolhidos. Métricas do Managed Service for Prometheus (`prometheus.googleapis.com/{nome}/{tipo}`) usam o próprio nome. O passo da consulta busca cerca de 1.500 pontos por série, com mínimo de 15 s. Um erro de PromQL aparece com a mensagem da API Prometheus. As cores das séries seguem a lei da paleta (SPEC-0002 D-20), e uma visão em tabela mostra o último valor de cada série.
 
 ### D-09 — Dashboards (M3, L2)
 
@@ -155,6 +172,7 @@ Os dashboards (`@google-cloud/monitoring-dashboards`) são listados e renderizad
   - MQL pela API de consulta de séries temporais, que ainda a aceita.
 - **Demais widgets:** aparecem como a sua definição JSON.
 - **Edição:** os dashboards são editados como JSON no Monaco e salvos com um update.
+- **Implementação:** os layouts grid, mosaic, row e column viram uma grade de 12 colunas na ordem de leitura; um grupo recolhível esconde os ladrilhos dentro da sua altura. Widgets de texto são markdown escrito por pessoas e aparecem como texto (SPEC-0001 D-22). O save envia o JSON com o seu `etag`, então uma edição concorrente falha em vez de sobrescrever. Excluir um dashboard exige o id digitado.
 
 ### D-10 — Alertas, uptime checks e canais de notificação (M3, L2)
 
@@ -164,21 +182,25 @@ Os dashboards (`@google-cloud/monitoring-dashboards`) são listados e renderizad
 | **Alertas abertos** | Listados onde a API do Monitoring os expõe; senão, a página liga as políticas aos gráficos das suas condições |
 | **Uptime checks** | Listar com a taxa de aprovação atual (pela métrica de uptime check); criar (HTTP, HTTPS ou TCP, para uma URL ou um recurso); excluir |
 | **Canais de notificação** | Listar, criar (a partir dos descritores de canal disponíveis), enviar verificação, excluir |
-| **Serviços e SLOs** | L1: lista e detalhe |
+| **Serviços e SLOs** | L1: lista e detalhe, pelo kit de recursos (SPEC-0001 D-30) |
+
+Implementação: a API do Monitoring não lista incidentes; a página da política desenha cada condição como a política a avalia (filtro com a agregação, PromQL ou MQL), com a linha do limiar. A taxa de aprovação dos uptime checks vem de uma leitura agrupada por `check_id` da última hora (`ALIGN_FRACTION_TRUE`). Uma política também pode ser criada a partir de JSON.
 
 ### D-11 — Error Reporting (M3, L2)
 
 Pelo `@googleapis/clouderrorreporting` (v1beta1, incluindo as variantes por location):
 - **Grupos de erro:** lista com contagem, primeira e última ocorrência, serviços e versões afetados, num intervalo de tempo.
 - **Página do grupo:** um stack trace de amostra, um gráfico de ocorrências, eventos recentes, link para os logs, e um estado de resolução (aberto, reconhecido, resolvido, silenciado) que pode ser alterado.
-- **Excluir todos os eventos** do projeto, com confirmação digitada.
+- **Excluir todos os eventos** do projeto, com o id do projeto digitado.
+- A aba Logs do grupo filtra `severity>=ERROR` com a primeira linha da mensagem como busca de texto. O stack trace aparece como texto.
 
 ### D-12 — Cloud Trace (M3, L2)
 
 Pelo `@googleapis/cloudtrace` (leituras só existem na v1):
 - **Lista de traces:** filtro, intervalo de tempo, ordenação por latência ou início; colunas de span raiz, latência e início; um histograma de latência dos traces listados.
 - **Página do trace:** uma **cascata** de spans com barras de tempo e labels.
-- **Links:** a partir de entradas de log com campo `trace` e de eventos do Error Reporting.
+- **Links:** a partir de entradas de log com campo `trace`. Os eventos do Error Reporting não trazem o trace na API v1beta1; o grupo leva aos logs, que levam aos traces.
+- A página do trace tem também a aba Logs, filtrada por `trace="projects/{p}/traces/{id}"`.
 
 ---
 
@@ -282,6 +304,8 @@ As demais specs de produto acrescentam as suas predefinições a esta tabela qua
 | **M3** | Logs Explorer, Log Router, buckets, views, métricas baseadas em log, Metrics Explorer, dashboards, alertas, uptime checks, canais, Error Reporting, Trace | M1 |
 | **M6** | SQL sobre logs pelo BigQuery (D-06) | SPEC-0008 BigQuery |
 
+**Estado.** O M3 está implementado, e a D-06 do M6 também. Verificado com a API simulada: testes unitários do mapeamento (PromQL, séries, políticas, sinks, buckets, métricas, grupos de erro, traces) e testes do Playwright com capturas de cada tela, mais o axe nos dois temas em 18 telas novas. T-07, T-08 e T-10 a T-15 contra um projeto real dependem da SPEC-0001 Q-02.
+
 ---
 
 ## 11. Riscos e questões em aberto
@@ -309,3 +333,6 @@ Nenhuma.
 | 2026-09-28 | 0.3 | | **Implementação do M1.**<br>• D-01: "Open in Google Cloud console" no lugar de "Open in Logs Explorer" até o M3.<br>• D-02: a espera de cota é devolvida ao cliente (`RESOURCE_EXHAUSTED` com `retryAfterSeconds`), que conta o tempo e repete; listas pelo `entries.list` REST, tail pelo `@google-cloud/logging-api`.<br>• D-03: payloads proto não são decodificados no tail.<br>• CA-10: nomes das métricas do Workflows implementados, pendentes de conferência com a Q-02. |
 | 2026-09-28 | 0.4 | | CA-10: predefinição `firestore-database` implementada (a linha do Firestore), filtrada pelo rótulo `database_id` do recurso monitorado; aba Usage da SPEC-0004 D-17. Os nomes das métricas seguem pendentes de conferência com a SPEC-0001 Q-02. |
 | 2026-09-28 | 0.5 | | CA-10: predefinições `pubsub-topic` (rótulo `topic_id`) e `pubsub-subscription` (rótulo `subscription_id`) implementadas, com as métricas das linhas do Pub/Sub; nomes pendentes de conferência com a SPEC-0001 Q-02. |
+| 2026-10-14 | 0.6 | | **Implementação do M3.**<br>• D-01: "Open in Logs Explorer" leva ao explorador do Nephoscope; link "Open trace" nas entradas com `trace`.<br>• D-04: consulta na URL, painel de logs em modo explorador, catálogo de completação, download que espera por vaga na cota, aba de audit logs.<br>• D-05: exclusões do projeto; grant da identidade de escrita com o comando; sinks embutidos protegidos no servidor.<br>• D-08: gerador de PromQL e passo de cerca de 1.500 pontos.<br>• D-09: layouts normalizados, texto como texto, save com `etag`.<br>• D-10: sem lista de incidentes na API; condições desenhadas como a política as avalia; serviços e SLOs pelo kit.<br>• D-11 e D-12: logs do grupo e do trace; eventos sem trace na v1beta1.<br>• SDKs: REST pela SPEC-0001 D-29.<br>• Estado no plano de entrega. |
+| 2026-10-14 | 0.7 | | D-06: aba SQL da Logging, sobre os datasets vinculados, com o editor da SPEC-0008. |
+| 2026-10-14 | 0.8 | | Sincronização final do M7 (SPEC-0009 D-07): sem mudanças além da 0.7. |

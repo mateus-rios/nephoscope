@@ -1,0 +1,686 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-14T17:15:47Z",
+  "title": "Design System: Nephoscope",
+  "extensions": {
+    "colorMeta": {
+      "drafting-film": {
+        "role": "neutral",
+        "displayName": "Drafting Film",
+        "canonical": "oklch(0.968 0.005 220)",
+        "tonalRamp": [
+          "oklch(0.15 0.005 220.0)",
+          "oklch(0.26 0.005 220.0)",
+          "oklch(0.37 0.005 220.0)",
+          "oklch(0.49 0.005 220.0)",
+          "oklch(0.60 0.005 220.0)",
+          "oklch(0.71 0.005 220.0)",
+          "oklch(0.83 0.005 220.0)",
+          "oklch(0.95 0.005 220.0)"
+        ]
+      },
+      "sheet": {
+        "role": "neutral",
+        "displayName": "Sheet",
+        "canonical": "oklch(0.984 0.003 220)",
+        "tonalRamp": [
+          "oklch(0.15 0.003 220.0)",
+          "oklch(0.26 0.003 220.0)",
+          "oklch(0.37 0.003 220.0)",
+          "oklch(0.49 0.003 220.0)",
+          "oklch(0.60 0.003 220.0)",
+          "oklch(0.71 0.003 220.0)",
+          "oklch(0.83 0.003 220.0)",
+          "oklch(0.95 0.003 220.0)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "oklch(0.952 0.006 225)",
+        "tonalRamp": [
+          "oklch(0.15 0.006 225.0)",
+          "oklch(0.26 0.006 225.0)",
+          "oklch(0.37 0.006 225.0)",
+          "oklch(0.49 0.006 225.0)",
+          "oklch(0.60 0.006 225.0)",
+          "oklch(0.71 0.006 225.0)",
+          "oklch(0.83 0.006 225.0)",
+          "oklch(0.95 0.006 225.0)"
+        ]
+      },
+      "well": {
+        "role": "neutral",
+        "displayName": "Well",
+        "canonical": "oklch(0.94 0.007 225)",
+        "tonalRamp": [
+          "oklch(0.15 0.007 225.0)",
+          "oklch(0.26 0.007 225.0)",
+          "oklch(0.37 0.007 225.0)",
+          "oklch(0.49 0.007 225.0)",
+          "oklch(0.60 0.007 225.0)",
+          "oklch(0.71 0.007 225.0)",
+          "oklch(0.83 0.007 225.0)",
+          "oklch(0.95 0.007 225.0)"
+        ]
+      },
+      "hover": {
+        "role": "neutral",
+        "displayName": "Hover",
+        "canonical": "oklch(0.925 0.008 228)",
+        "tonalRamp": [
+          "oklch(0.15 0.008 228.0)",
+          "oklch(0.26 0.008 228.0)",
+          "oklch(0.37 0.008 228.0)",
+          "oklch(0.49 0.008 228.0)",
+          "oklch(0.60 0.008 228.0)",
+          "oklch(0.71 0.008 228.0)",
+          "oklch(0.83 0.008 228.0)",
+          "oklch(0.95 0.008 228.0)"
+        ]
+      },
+      "graphite-ink": {
+        "role": "neutral",
+        "displayName": "Graphite Ink",
+        "canonical": "oklch(0.255 0.014 235)",
+        "tonalRamp": [
+          "oklch(0.15 0.014 235.0)",
+          "oklch(0.26 0.014 235.0)",
+          "oklch(0.37 0.014 235.0)",
+          "oklch(0.49 0.014 235.0)",
+          "oklch(0.60 0.014 235.0)",
+          "oklch(0.71 0.014 235.0)",
+          "oklch(0.83 0.014 235.0)",
+          "oklch(0.95 0.014 235.0)"
+        ]
+      },
+      "graphite-ink-2": {
+        "role": "neutral",
+        "displayName": "Graphite Ink 2",
+        "canonical": "oklch(0.42 0.014 235)",
+        "tonalRamp": [
+          "oklch(0.15 0.014 235.0)",
+          "oklch(0.26 0.014 235.0)",
+          "oklch(0.37 0.014 235.0)",
+          "oklch(0.49 0.014 235.0)",
+          "oklch(0.60 0.014 235.0)",
+          "oklch(0.71 0.014 235.0)",
+          "oklch(0.83 0.014 235.0)",
+          "oklch(0.95 0.014 235.0)"
+        ]
+      },
+      "graphite-ink-3": {
+        "role": "neutral",
+        "displayName": "Graphite Ink 3",
+        "canonical": "oklch(0.52 0.012 235)",
+        "tonalRamp": [
+          "oklch(0.15 0.012 235.0)",
+          "oklch(0.26 0.012 235.0)",
+          "oklch(0.37 0.012 235.0)",
+          "oklch(0.49 0.012 235.0)",
+          "oklch(0.60 0.012 235.0)",
+          "oklch(0.71 0.012 235.0)",
+          "oklch(0.83 0.012 235.0)",
+          "oklch(0.95 0.012 235.0)"
+        ]
+      },
+      "hairline-rule": {
+        "role": "neutral",
+        "displayName": "Hairline Rule",
+        "canonical": "oklch(0.875 0.008 230)",
+        "tonalRamp": [
+          "oklch(0.15 0.008 230.0)",
+          "oklch(0.26 0.008 230.0)",
+          "oklch(0.37 0.008 230.0)",
+          "oklch(0.49 0.008 230.0)",
+          "oklch(0.60 0.008 230.0)",
+          "oklch(0.71 0.008 230.0)",
+          "oklch(0.83 0.008 230.0)",
+          "oklch(0.95 0.008 230.0)"
+        ]
+      },
+      "hairline-rule-strong": {
+        "role": "neutral",
+        "displayName": "Hairline Rule Strong",
+        "canonical": "oklch(0.63 0.014 230)",
+        "tonalRamp": [
+          "oklch(0.15 0.014 230.0)",
+          "oklch(0.26 0.014 230.0)",
+          "oklch(0.37 0.014 230.0)",
+          "oklch(0.49 0.014 230.0)",
+          "oklch(0.60 0.014 230.0)",
+          "oklch(0.71 0.014 230.0)",
+          "oklch(0.83 0.014 230.0)",
+          "oklch(0.95 0.014 230.0)"
+        ]
+      },
+      "non-repro-blue": {
+        "role": "secondary",
+        "displayName": "Non Repro Blue",
+        "canonical": "oklch(0.66 0.09 240)",
+        "tonalRamp": [
+          "oklch(0.15 0.09 240.0)",
+          "oklch(0.26 0.09 240.0)",
+          "oklch(0.37 0.09 240.0)",
+          "oklch(0.49 0.09 240.0)",
+          "oklch(0.60 0.09 240.0)",
+          "oklch(0.71 0.09 240.0)",
+          "oklch(0.83 0.09 240.0)",
+          "oklch(0.95 0.09 240.0)"
+        ]
+      },
+      "non-repro-tint": {
+        "role": "secondary",
+        "displayName": "Non Repro Tint",
+        "canonical": "oklch(0.925 0.035 240)",
+        "tonalRamp": [
+          "oklch(0.15 0.035 240.0)",
+          "oklch(0.26 0.035 240.0)",
+          "oklch(0.37 0.035 240.0)",
+          "oklch(0.49 0.035 240.0)",
+          "oklch(0.60 0.035 240.0)",
+          "oklch(0.71 0.035 240.0)",
+          "oklch(0.83 0.035 240.0)",
+          "oklch(0.95 0.035 240.0)"
+        ]
+      },
+      "non-repro-ink": {
+        "role": "secondary",
+        "displayName": "Non Repro Ink",
+        "canonical": "oklch(0.45 0.11 245)",
+        "tonalRamp": [
+          "oklch(0.15 0.11 245.0)",
+          "oklch(0.26 0.11 245.0)",
+          "oklch(0.37 0.11 245.0)",
+          "oklch(0.49 0.11 245.0)",
+          "oklch(0.60 0.11 245.0)",
+          "oklch(0.71 0.11 245.0)",
+          "oklch(0.83 0.11 245.0)",
+          "oklch(0.95 0.11 245.0)"
+        ]
+      },
+      "commit-blue": {
+        "role": "primary",
+        "displayName": "Commit Blue",
+        "canonical": "oklch(0.5 0.19 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 262.0)",
+          "oklch(0.26 0.19 262.0)",
+          "oklch(0.37 0.19 262.0)",
+          "oklch(0.49 0.19 262.0)",
+          "oklch(0.60 0.19 262.0)",
+          "oklch(0.71 0.19 262.0)",
+          "oklch(0.83 0.19 262.0)",
+          "oklch(0.95 0.19 262.0)"
+        ]
+      },
+      "commit-blue-hover": {
+        "role": "primary",
+        "displayName": "Commit Blue Hover",
+        "canonical": "oklch(0.45 0.19 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 262.0)",
+          "oklch(0.26 0.19 262.0)",
+          "oklch(0.37 0.19 262.0)",
+          "oklch(0.49 0.19 262.0)",
+          "oklch(0.60 0.19 262.0)",
+          "oklch(0.71 0.19 262.0)",
+          "oklch(0.83 0.19 262.0)",
+          "oklch(0.95 0.19 262.0)"
+        ]
+      },
+      "commit-ink": {
+        "role": "primary",
+        "displayName": "Commit Ink",
+        "canonical": "oklch(0.985 0.004 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.004 262.0)",
+          "oklch(0.26 0.004 262.0)",
+          "oklch(0.37 0.004 262.0)",
+          "oklch(0.49 0.004 262.0)",
+          "oklch(0.60 0.004 262.0)",
+          "oklch(0.71 0.004 262.0)",
+          "oklch(0.83 0.004 262.0)",
+          "oklch(0.95 0.004 262.0)"
+        ]
+      },
+      "redline": {
+        "role": "tertiary",
+        "displayName": "Redline",
+        "canonical": "oklch(0.55 0.19 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 27.0)",
+          "oklch(0.26 0.19 27.0)",
+          "oklch(0.37 0.19 27.0)",
+          "oklch(0.49 0.19 27.0)",
+          "oklch(0.60 0.19 27.0)",
+          "oklch(0.71 0.19 27.0)",
+          "oklch(0.83 0.19 27.0)",
+          "oklch(0.95 0.19 27.0)"
+        ]
+      },
+      "redline-hover": {
+        "role": "tertiary",
+        "displayName": "Redline Hover",
+        "canonical": "oklch(0.5 0.19 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.19 27.0)",
+          "oklch(0.26 0.19 27.0)",
+          "oklch(0.37 0.19 27.0)",
+          "oklch(0.49 0.19 27.0)",
+          "oklch(0.60 0.19 27.0)",
+          "oklch(0.71 0.19 27.0)",
+          "oklch(0.83 0.19 27.0)",
+          "oklch(0.95 0.19 27.0)"
+        ]
+      },
+      "redline-tint": {
+        "role": "tertiary",
+        "displayName": "Redline Tint",
+        "canonical": "oklch(0.955 0.025 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.025 27.0)",
+          "oklch(0.26 0.025 27.0)",
+          "oklch(0.37 0.025 27.0)",
+          "oklch(0.49 0.025 27.0)",
+          "oklch(0.60 0.025 27.0)",
+          "oklch(0.71 0.025 27.0)",
+          "oklch(0.83 0.025 27.0)",
+          "oklch(0.95 0.025 27.0)"
+        ]
+      },
+      "redline-ink": {
+        "role": "tertiary",
+        "displayName": "Redline Ink",
+        "canonical": "oklch(0.47 0.17 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.17 27.0)",
+          "oklch(0.26 0.17 27.0)",
+          "oklch(0.37 0.17 27.0)",
+          "oklch(0.49 0.17 27.0)",
+          "oklch(0.60 0.17 27.0)",
+          "oklch(0.71 0.17 27.0)",
+          "oklch(0.83 0.17 27.0)",
+          "oklch(0.95 0.17 27.0)"
+        ]
+      },
+      "amber-warn": {
+        "role": "state",
+        "displayName": "Amber Warn",
+        "canonical": "oklch(0.64 0.14 66)",
+        "tonalRamp": [
+          "oklch(0.15 0.14 66.0)",
+          "oklch(0.26 0.14 66.0)",
+          "oklch(0.37 0.14 66.0)",
+          "oklch(0.49 0.14 66.0)",
+          "oklch(0.60 0.14 66.0)",
+          "oklch(0.71 0.14 66.0)",
+          "oklch(0.83 0.14 66.0)",
+          "oklch(0.95 0.14 66.0)"
+        ]
+      },
+      "amber-warn-ink": {
+        "role": "state",
+        "displayName": "Amber Warn Ink",
+        "canonical": "oklch(0.48 0.11 62)",
+        "tonalRamp": [
+          "oklch(0.15 0.11 62.0)",
+          "oklch(0.26 0.11 62.0)",
+          "oklch(0.37 0.11 62.0)",
+          "oklch(0.49 0.11 62.0)",
+          "oklch(0.60 0.11 62.0)",
+          "oklch(0.71 0.11 62.0)",
+          "oklch(0.83 0.11 62.0)",
+          "oklch(0.95 0.11 62.0)"
+        ]
+      },
+      "green-ok": {
+        "role": "state",
+        "displayName": "Green OK",
+        "canonical": "oklch(0.6 0.13 155)",
+        "tonalRamp": [
+          "oklch(0.15 0.13 155.0)",
+          "oklch(0.26 0.13 155.0)",
+          "oklch(0.37 0.13 155.0)",
+          "oklch(0.49 0.13 155.0)",
+          "oklch(0.60 0.13 155.0)",
+          "oklch(0.71 0.13 155.0)",
+          "oklch(0.83 0.13 155.0)",
+          "oklch(0.95 0.13 155.0)"
+        ]
+      },
+      "green-ok-ink": {
+        "role": "state",
+        "displayName": "Green OK Ink",
+        "canonical": "oklch(0.43 0.1 155)",
+        "tonalRamp": [
+          "oklch(0.15 0.1 155.0)",
+          "oklch(0.26 0.1 155.0)",
+          "oklch(0.37 0.1 155.0)",
+          "oklch(0.49 0.1 155.0)",
+          "oklch(0.60 0.1 155.0)",
+          "oklch(0.71 0.1 155.0)",
+          "oklch(0.83 0.1 155.0)",
+          "oklch(0.95 0.1 155.0)"
+        ]
+      },
+      "focus-blue": {
+        "role": "state",
+        "displayName": "Focus Blue",
+        "canonical": "oklch(0.55 0.15 245)",
+        "tonalRamp": [
+          "oklch(0.15 0.15 245.0)",
+          "oklch(0.26 0.15 245.0)",
+          "oklch(0.37 0.15 245.0)",
+          "oklch(0.49 0.15 245.0)",
+          "oklch(0.60 0.15 245.0)",
+          "oklch(0.71 0.15 245.0)",
+          "oklch(0.83 0.15 245.0)",
+          "oklch(0.95 0.15 245.0)"
+        ]
+      },
+      "blueprint-film": {
+        "role": "neutral",
+        "displayName": "Blueprint Film",
+        "canonical": "oklch(0.215 0.032 252)",
+        "tonalRamp": [
+          "oklch(0.15 0.032 252.0)",
+          "oklch(0.26 0.032 252.0)",
+          "oklch(0.37 0.032 252.0)",
+          "oklch(0.49 0.032 252.0)",
+          "oklch(0.60 0.032 252.0)",
+          "oklch(0.71 0.032 252.0)",
+          "oklch(0.83 0.032 252.0)",
+          "oklch(0.95 0.032 252.0)"
+        ]
+      },
+      "blueprint-sheet": {
+        "role": "neutral",
+        "displayName": "Blueprint Sheet",
+        "canonical": "oklch(0.235 0.034 252)",
+        "tonalRamp": [
+          "oklch(0.15 0.034 252.0)",
+          "oklch(0.26 0.034 252.0)",
+          "oklch(0.37 0.034 252.0)",
+          "oklch(0.49 0.034 252.0)",
+          "oklch(0.60 0.034 252.0)",
+          "oklch(0.71 0.034 252.0)",
+          "oklch(0.83 0.034 252.0)",
+          "oklch(0.95 0.034 252.0)"
+        ]
+      },
+      "blueprint-ink": {
+        "role": "neutral",
+        "displayName": "Blueprint Ink",
+        "canonical": "oklch(0.935 0.012 240)",
+        "tonalRamp": [
+          "oklch(0.15 0.012 240.0)",
+          "oklch(0.26 0.012 240.0)",
+          "oklch(0.37 0.012 240.0)",
+          "oklch(0.49 0.012 240.0)",
+          "oklch(0.60 0.012 240.0)",
+          "oklch(0.71 0.012 240.0)",
+          "oklch(0.83 0.012 240.0)",
+          "oklch(0.95 0.012 240.0)"
+        ]
+      },
+      "blueprint-rule": {
+        "role": "neutral",
+        "displayName": "Blueprint Rule",
+        "canonical": "oklch(0.33 0.035 250)",
+        "tonalRamp": [
+          "oklch(0.15 0.035 250.0)",
+          "oklch(0.26 0.035 250.0)",
+          "oklch(0.37 0.035 250.0)",
+          "oklch(0.49 0.035 250.0)",
+          "oklch(0.60 0.035 250.0)",
+          "oklch(0.71 0.035 250.0)",
+          "oklch(0.83 0.035 250.0)",
+          "oklch(0.95 0.035 250.0)"
+        ]
+      },
+      "blueprint-commit": {
+        "role": "neutral",
+        "displayName": "Blueprint Commit",
+        "canonical": "oklch(0.7 0.15 262)",
+        "tonalRamp": [
+          "oklch(0.15 0.15 262.0)",
+          "oklch(0.26 0.15 262.0)",
+          "oklch(0.37 0.15 262.0)",
+          "oklch(0.49 0.15 262.0)",
+          "oklch(0.60 0.15 262.0)",
+          "oklch(0.71 0.15 262.0)",
+          "oklch(0.83 0.15 262.0)",
+          "oklch(0.95 0.15 262.0)"
+        ]
+      },
+      "blueprint-redline": {
+        "role": "neutral",
+        "displayName": "Blueprint Redline",
+        "canonical": "oklch(0.68 0.17 27)",
+        "tonalRamp": [
+          "oklch(0.15 0.17 27.0)",
+          "oklch(0.26 0.17 27.0)",
+          "oklch(0.37 0.17 27.0)",
+          "oklch(0.49 0.17 27.0)",
+          "oklch(0.60 0.17 27.0)",
+          "oklch(0.71 0.17 27.0)",
+          "oklch(0.83 0.17 27.0)",
+          "oklch(0.95 0.17 27.0)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "page": {
+        "displayName": "Page",
+        "purpose": "The title block's title, one per page."
+      },
+      "section": {
+        "displayName": "Section",
+        "purpose": "Section headings below a hairline rule."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Reading text, descriptions, dialog copy."
+      },
+      "dense": {
+        "displayName": "Dense",
+        "purpose": "Table cells, controls and form text: the working size of the app."
+      },
+      "meta": {
+        "displayName": "Meta",
+        "purpose": "Help text, timestamps, counts."
+      },
+      "legend": {
+        "displayName": "Legend",
+        "purpose": "Title-block labels and table headers only; uppercase, condensed."
+      },
+      "data": {
+        "displayName": "Data",
+        "purpose": "Ids, resource names, code, log lines, query results."
+      }
+    },
+    "shadows": [
+      {
+        "name": "overlay",
+        "value": "0 1px 2px var(--shadow-color), 0 8px 24px -6px var(--shadow-color)",
+        "purpose": "Menus, popovers, dialogs, sheets, and a dragged row while it moves."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(0.23, 1, 0.32, 1)",
+        "purpose": "Popups, dialogs, presses, hover colors."
+      },
+      {
+        "name": "ease-in-out",
+        "value": "cubic-bezier(0.77, 0, 0.175, 1)",
+        "purpose": "Elements that move between two places on screen."
+      },
+      {
+        "name": "ease-drawer",
+        "value": "cubic-bezier(0.32, 0.72, 0, 1)",
+        "purpose": "Side sheets sliding in from the right."
+      },
+      {
+        "name": "dur-press",
+        "value": "160ms",
+        "purpose": "Button press scale to 97% and back."
+      },
+      {
+        "name": "dur-tip",
+        "value": "125ms",
+        "purpose": "Tooltip entrance; later tooltips in a row appear at once."
+      },
+      {
+        "name": "dur-menu",
+        "value": "150ms",
+        "purpose": "Menu and popover entrance; exits take 100ms."
+      },
+      {
+        "name": "dur-dialog",
+        "value": "200ms",
+        "purpose": "Dialog entrance; exits take 150ms."
+      },
+      {
+        "name": "dur-sheet",
+        "value": "250ms",
+        "purpose": "Side sheet entrance; exits take 200ms."
+      },
+      {
+        "name": "dur-ink",
+        "value": "1000ms",
+        "purpose": "The construction tint fading off a value that just changed."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "md",
+        "value": "768px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Commit Button",
+      "kind": "button",
+      "refersTo": "button-commit",
+      "description": "The one committing control of a view.",
+      "html": "<button class=\"ds-btn-commit\">Deploy revision</button>",
+      "css": ".ds-btn-commit { height: 32px; padding: 0 12px; border: 1px solid var(--commit); border-radius: 4px; background: var(--commit); color: var(--commit-ink); font: 500 13px/18px var(--font-ui); transition: background-color 150ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms cubic-bezier(0.23, 1, 0.32, 1), transform 160ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-commit:hover { background: var(--commit-hover); border-color: var(--commit-hover); } .ds-btn-commit:active { transform: scale(0.97); } .ds-btn-commit:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Danger Button",
+      "kind": "button",
+      "refersTo": "button-danger",
+      "description": "Confirms a destruction, after the resource name is typed.",
+      "html": "<button class=\"ds-btn-danger\">Delete service</button>",
+      "css": ".ds-btn-danger { height: 32px; padding: 0 12px; border: 1px solid var(--redline); border-radius: 4px; background: var(--redline); color: var(--commit-ink); font: 500 13px/18px var(--font-ui); transition: background-color 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-danger:hover { background: var(--redline-hover); border-color: var(--redline-hover); } .ds-btn-danger:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Secondary Button",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Every action that is not the commit.",
+      "html": "<button class=\"ds-btn-secondary\">Refresh</button>",
+      "css": ".ds-btn-secondary { height: 32px; padding: 0 12px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--sheet); color: var(--ink); font: 500 13px/18px var(--font-ui); transition: background-color 150ms cubic-bezier(0.23, 1, 0.32, 1), border-color 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-btn-secondary:hover { background: var(--hover); border-color: var(--ink-3); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Row actions in tables.",
+      "html": "<button class=\"ds-btn-ghost\">Edit</button>",
+      "css": ".ds-btn-ghost { height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 4px; background: transparent; color: var(--ink-2); font: 500 12px/16px var(--font-ui); } .ds-btn-ghost:hover { background: var(--hover); color: var(--ink); } .ds-btn-ghost:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Label above, help below; machine values in the data font.",
+      "html": "<label class=\"ds-field\"><span class=\"ds-field-label\">Image</span><input class=\"ds-input\" value=\"us-central1-docker.pkg.dev/demo/apps/api:v42\"><span class=\"ds-field-help\">A tag or a digest.</span></label>",
+      "css": ".ds-field { display: flex; flex-direction: column; gap: 4px; width: 360px; } .ds-field-label { font: 500 13px/18px var(--font-ui); color: var(--ink); } .ds-input { height: 32px; padding: 0 10px; border: 1px solid var(--rule-strong); border-radius: 4px; background: var(--sheet); color: var(--ink); font: 400 12px/16px var(--font-code); transition: border-color 150ms cubic-bezier(0.23, 1, 0.32, 1); } .ds-input:hover { border-color: var(--ink-3); } .ds-input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; } .ds-field-help { font: 400 12px/16px var(--font-ui); color: var(--ink-3); }"
+    },
+    {
+      "name": "Status Glyph",
+      "kind": "chip",
+      "refersTo": null,
+      "description": "State as an icon and a word, never color alone.",
+      "html": "<span class=\"ds-status ds-status-ok\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 256 256\" aria-hidden=\"true\"><path fill=\"currentColor\" d=\"M173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34ZM232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z\"/></svg>Ready</span>",
+      "css": ".ds-status { display: inline-flex; align-items: center; gap: 6px; font: 400 13px/18px var(--font-ui); color: var(--ink); } .ds-status-ok svg { color: var(--ok); }"
+    },
+    {
+      "name": "Title Block",
+      "kind": "custom",
+      "refersTo": null,
+      "description": "The head of every page: title, status, actions and cells, like a drawing title block.",
+      "html": "<header class=\"ds-title\"><div class=\"ds-title-row\"><h1>api</h1><span class=\"ds-title-sub\">Cloud Run service</span></div><dl class=\"ds-cells\"><div><dt>Region</dt><dd>us-central1</dd></div><div><dt>Revision</dt><dd>api-00042-xyz</dd></div></dl></header>",
+      "css": ".ds-title { border-bottom: 1px solid var(--rule); background: var(--film); } .ds-title-row { padding: 20px 24px 12px; } .ds-title h1 { margin: 0; font: 600 20px/28px var(--font-ui); letter-spacing: -0.01em; color: var(--ink); } .ds-title-sub { font: 400 13px/18px var(--font-ui); color: var(--ink-2); } .ds-cells { display: flex; margin: 0; border-top: 1px solid var(--rule); } .ds-cells > div { padding: 8px 24px; border-right: 1px solid var(--rule); } .ds-cells dt { font: 560 11px/14px var(--font-ui); font-stretch: 75%; letter-spacing: 0.07em; text-transform: uppercase; color: var(--ink-3); } .ds-cells dd { margin: 0; font: 400 12px/16px var(--font-code); color: var(--ink); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Drawing Sheet",
+    "overview": "Every Google Cloud resource is a drawing sheet. A title block states what the resource is and under which credential; a revision table says what changed; redline marks what is wrong or about to be destroyed. The world is drafting film with graphite ink and hairline rules, with non-repro blue for construction lines and secondary information. The dark theme is a blueprint: the same drawing, reversed onto deep navy.\n\nThe interface is dense inside a block and generous between blocks, and it is never boxed into cards. It is used for hours, mostly by keyboard, often during incidents, so it stays calm: one saturated color per view, and that color means \"commit\". Status always carries an icon and a word, never color alone. Project data is drawn as text, exactly as Google returned it.\n\nInk settles; it does not fly. Values that change live take a pale construction tint that fades over a second. Popups grow from their trigger at 97% scale; nothing a keyboard triggers animates.",
+    "keyCharacteristics": [
+      "Drafting film and graphite in light; blueprint navy in dark. Both are first-class, and both pass WCAG 2.2 AA.",
+      "Hairline rules instead of boxes and shadows; depth only for things that float (menus, dialogs, sheets).",
+      "One commit control per view, in commit blue; destruction in redline, behind a typed confirmation.",
+      "Archivo for every role; Martian Mono only for ids, paths, code and data.",
+      "Condensed uppercase legends label title blocks and table headers, like drafting lettering."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "Commit blue appears on at most one control per view. A second action is secondary or ghost. A dialog or sheet is its own view and may have its own commit.",
+        "section": "colors"
+      },
+      {
+        "name": "The Redline Rule",
+        "body": "Red means an error or a destruction, nothing else. A red badge for \"new\" or a red brand accent is forbidden.",
+        "section": "colors"
+      },
+      {
+        "name": "The Token Rule",
+        "body": "Colors exist only as tokens in `tokens.css`; Tailwind's default palette is removed, and a check fails the build on any other color literal.",
+        "section": "colors"
+      },
+      {
+        "name": "The Identity Is Not State Rule",
+        "body": "Profile color tags mark which credential is active; they never signal health.",
+        "section": "colors"
+      },
+      {
+        "name": "The Legend Rule",
+        "body": "Uppercase condensed lettering is reserved for legends. Buttons, headings and body text are sentence case.",
+        "section": "typography"
+      },
+      {
+        "name": "The Machine Text Rule",
+        "body": "If Google produced it (an id, a path, a JSON value), it is set in Martian Mono and drawn as text, never as HTML.",
+        "section": "typography"
+      },
+      {
+        "name": "The No Cards Rule",
+        "body": "Content is never wrapped in raised cards. A group is a section with a heading and a rule.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep one commit-blue control per view and make every other action secondary or ghost.",
+      "**Do** pair every state color with its icon and a word.",
+      "**Do** set ids, paths, code and values in Martian Mono, as text, exactly as Google returned them.",
+      "**Do** put a typed confirmation of the resource name in front of every destruction, with the equivalent command shown.",
+      "**Do** use the non-repro tint, fading over one second, to show that a live value just changed.",
+      "**Do** honor reduced motion: popups keep their fade, lose their scale; spinners stop."
+    ],
+    "donts": [
+      "**Don't** use red for anything but errors and destruction.",
+      "**Don't** wrap content in cards, add colored top bars, or build dashboards of metric tiles.",
+      "**Don't** animate anything triggered by a keyboard shortcut or repeated many times a minute.",
+      "**Don't** grow a popup from 0 or from the center of the screen; it grows from its trigger at 97%.",
+      "**Don't** add a color outside `tokens.css`, or reuse a profile tag color to mean state.",
+      "**Don't** imitate Google's visual identity or use Google's product icons."
+    ]
+  }
+}

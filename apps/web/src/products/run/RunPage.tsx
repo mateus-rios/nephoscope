@@ -303,7 +303,8 @@ function JobsTab({ projectId }: { projectId: string }) {
 export function RunPage() {
   const { projectId } = useParams({ strict: false }) as { projectId: string };
   const [tab, setTab] = useSearchState<'services' | 'jobs'>('tab', 'services', ['services', 'jobs']);
-  const [creating, setCreating] = useState(false);
+  const [deployImage, setDeployImage] = useSearchState<string>('deployImage', '');
+  const [creating, setCreating] = useState(!!deployImage);
   const instance = useInstance();
   const { profile } = useActiveProfile();
   const readOnly = readOnlyReason(instance.data?.readOnly, profile?.readOnly);
@@ -333,7 +334,17 @@ export function RunPage() {
       <div className="pt-3">
         {tab === 'services' ? <ServicesTab projectId={projectId} onCreate={() => setCreating(true)} /> : <JobsTab projectId={projectId} />}
       </div>
-      <DeploySheet projectId={projectId} open={creating} onOpenChange={setCreating} service={null} readOnlyReason={readOnly} />
+      <DeploySheet
+        projectId={projectId}
+        open={creating}
+        onOpenChange={(o) => {
+          setCreating(o);
+          if (!o && deployImage) setDeployImage('');
+        }}
+        service={null}
+        readOnlyReason={readOnly}
+        initialImage={deployImage || null}
+      />
     </div>
   );
 }

@@ -161,7 +161,8 @@ and labels; Nephoscope says so where it matters.
 
 ## What works today
 
-Milestones M0 to M2, Pub/Sub and Cloud Storage from M4, and Colab Enterprise:
+Every milestone, M0 to M7. The products below the first list (from observability on) are verified
+against mocked APIs so far; checking them against a real project is still open (SPEC-0001 Q-02).
 
 - **Cloud Run** services and jobs: deploy revisions, split traffic, roll back, run jobs with
   overrides, live executions, logs and metrics.
@@ -191,8 +192,28 @@ Milestones M0 to M2, Pub/Sub and Cloud Storage from M4, and Colab Enterprise:
 - **Activity**: the audit log.
 - The command palette (`Ctrl K`), keyboard shortcuts (`?`), light and dark themes, three densities.
 
-Next come observability (M3), Filestore, security and delivery, data and compute, and a raw API console. The plan
-and every decision live in [docs/specs](docs/specs/README.md) (in Portuguese).
+Since then:
+
+- **Observability**: the Logs Explorer (query editor, facets, histogram, live tail, downloads, SQL
+  over linked BigQuery datasets), the Log Router, log buckets and views, log-based metrics, the
+  Metrics Explorer on PromQL, dashboards, alert policies, uptime checks, notification channels,
+  Error Reporting and Cloud Trace.
+- **Security and delivery**: IAM (policy editing with diffs, service accounts and keys, roles,
+  "what this key can do", the Policy Troubleshooter), Secret Manager with a safe reveal, Cloud KMS
+  with encrypt, decrypt, sign and verify, Cloud Armor (rule editor, reorder plan, attachments),
+  Certificate Manager, Artifact Registry (cleanup policies, vulnerabilities, deploy to Cloud Run),
+  Cloud Build with live logs, and Cloud Deploy (promote, approve, roll out).
+- **Data and compute**: BigQuery (explorer, an editor that prices every query before it runs,
+  exact result types, jobs), Cloud SQL, Memorystore, Compute Engine (with live serial output), VPC
+  networks and firewall rules, a load balancer topology diagram, Cloud DNS change sets, GKE clusters
+  and node pools, and App Engine.
+- **The long tail**: a raw API console for any Google Cloud method, billing and costs from the
+  billing export, quotas with usage, recommendations, organization policies, the 1st gen functions
+  upgrade, and list and detail pages for Filestore, Spanner, Bigtable, AlloyDB, Batch, Vertex AI,
+  Dataflow, Dataproc, Composer, Storage Transfer, Security Command Center, IAP, connectivity tests
+  and API Gateway.
+
+The plan and every decision live in [docs/specs](docs/specs/README.md) (in Portuguese).
 
 ## Development
 

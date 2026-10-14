@@ -5,11 +5,11 @@
 | **Status** | Rascunho |
 | **Autor(es)** | |
 | **Revisores** | |
-| **Sistemas** | `apps/api/src/products/{bigquery,cloudsql,memorystore,compute,vpc,loadbalancing,dns,gke}` · os `apps/web/src/products/*` correspondentes |
-| **SDKs** | `@google-cloud/bigquery` (e `@google-cloud/bigquery-data-transfer` para consultas agendadas) · `@google-cloud/sql` · `@google-cloud/redis`, `@google-cloud/redis-cluster`, `@google-cloud/memorystore` (Valkey), `@google-cloud/memcache` · `@google-cloud/compute` · `@google-cloud/vpc-access` · `@googleapis/dns` · `@google-cloud/container` |
+| **Sistemas** | `apps/api/src/modules/{bigquery,compute,dns}` · `apps/api/src/modules/kit/sources-m6.ts` e `packages/contracts/src/kit-catalog-{compute,data}.ts` (Compute, VPC, GKE, Cloud SQL, Memorystore, consultas agendadas, políticas de DNS pelo kit, SPEC-0001 D-30) · `apps/web/src/products/{bigquery,dns,loadbalancing,compute,cloudsql}` |
+| **SDKs** | Nenhum pacote novo: REST pelo cliente autenticado do perfil (SPEC-0001 D-29). BigQuery v2 e Data Transfer v1, Cloud SQL Admin v1, Memorystore (Redis v1, Memorystore v1, Memcache v1), Compute v1, Serverless VPC Access v1, Cloud DNS v1, GKE v1 |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (famílias de operação D-09, confirmações D-13, fan-out D-17) · [SPEC-0005](./0005-observability.md) (predefinições de métricas, SQL sobre logs D-06) · [SPEC-0007](./0007-security-delivery.md) (Cloud Armor, certificados) · [SPEC-0003](./0003-serverless.md) (NEGs serverless apontam para Cloud Run services) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.2 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.5 |
 
 ---
 
@@ -78,6 +78,7 @@ Consultas do BigQuery podem custar dinheiro de verdade, e o custo só é conheci
 - **Gestão (L2):** criar datasets (location) e tabelas (um editor de schema com visão JSON); copiar tabelas; atualizar expiração, labels e descrição.
 - **Exclusões (digitadas):** excluir um dataset não vazio também exige a quantidade de tabelas digitada.
 - **Consultas agendadas** (Data Transfer): L1, com executar agora.
+- **Implementação:** os projetos fixados ficam nas preferências (`bigqueryProjects`, com `bigquery-public-data` de início) e são acrescentados ou tirados no próprio explorador. A árvore lista tabelas, views, rotinas e modelos sob demanda; "Query" num item põe um `SELECT` no editor. O editor de schema mostra os campos como linhas (nome, tipo, modo) e tem a visão JSON, a única para campos aninhados. Descrição, expiração e labels de datasets e tabelas são editados juntos; um label tirado é enviado como `null`. Apagar um dataset com tabelas exige o nome e a quantidade de tabelas digitados, conferidos de novo no servidor.
 
 ### D-02 — Toda consulta é precificada antes de rodar
 
@@ -89,6 +90,8 @@ Consultas do BigQuery podem custar dinheiro de verdade, e o custo só é conheci
   - uma consulta cujo dry run passa do teto pede que o usuário eleve o teto para aquela execução, dizendo o valor.
 - Parâmetros de consulta nomeados têm um editor. A tabela de destino e o modo de escrita são opcionais.
 
+**Implementação:** o teto padrão fica nas preferências (`bigqueryMaxBytes`) e é mudado no painel "Query settings" do editor. Os erros do dry run viram marcadores na posição `[linha:coluna]` que o BigQuery informa. Com perfil ou instância somente leitura, só um `SELECT` sem tabela de destino roda; o servidor confere o tipo da instrução com um dry run, e uma consulta que o dry run não consegue conferir (um erro de sintaxe ou de permissão, por exemplo) também é recusada (SPEC-0001 CA-48, escopo `query`).
+
 **Racional:** o BigQuery cobra por bytes processados, e uma consulta digitada errado numa tabela grande pode custar caro. Um dry run é grátis, e o teto transforma uma surpresa num erro.
 
 ### D-03 — Os resultados mantêm os tipos do BigQuery
@@ -99,10 +102,11 @@ Consultas do BigQuery podem custar dinheiro de verdade, e o custo só é conheci
 - Os resultados são paginados com `getQueryResults` numa grade virtualizada.
 - **Detalhes da execução:** bytes processados e cobrados, tempo de slot, acerto de cache e um resumo dos estágios.
 - **Download:** CSV ou JSON, em streaming, até 100.000 linhas. Acima disso, um **job de export** para o Cloud Storage.
+- **Implementação:** os resultados são lidos com `formatOptions.useInt64Timestamp`, então um TIMESTAMP chega em microssegundos e vira ISO sem perder precisão. A grade desenha só as linhas visíveis (altura de linha fixa) e carrega mais páginas perto do fim. O JSON do download tem uma linha por registro.
 
 ### D-04 — Jobs são operações
 
-Um job de consulta é acompanhado pelo rastreador de operações (SPEC-0001 D-09, família de jobs do BigQuery), então uma consulta longa sobrevive ao fechamento da aba e pode ser cancelada pela bandeja.
+Um job de consulta é acompanhado pelo rastreador de operações (SPEC-0001 D-09, família de jobs do BigQuery), então uma consulta longa sobrevive ao fechamento da aba e pode ser cancelada pela bandeja. A entrada da bandeja leva ao editor com os resultados do job (`?job=location/id`); depois de um reinício do Nephoscope, o cancelamento fica no painel de resultados (SPEC-0001 CA-34).
 
 O histórico de jobs (os jobs do projeto, filtráveis por principal e estado) abre o SQL, os detalhes e os resultados de qualquer job enquanto estiverem em cache. Consultas salvas e o histórico de consultas são locais (SPEC-0001 CA-53).
 
@@ -129,6 +133,7 @@ O histórico de jobs (os jobs do projeto, filtráveis por principal e estado) ab
 | Metrics e Logs | Predefinições da SPEC-0005; logs filtrados por `resource.type="cloudsql_database"` |
 
 - As operações do Cloud SQL têm tipo próprio e são acompanhadas pelo seu adaptador (SPEC-0001 D-09).
+- **Implementação:** pelo kit de recursos. Connections e Maintenance são ações da instância (redes autorizadas, modo SSL, janela de manutenção) com os valores atuais nos fatos; os períodos de bloqueio aparecem nos fatos. A aba Flags junta as flags da instância ao catálogo de flags do Cloud SQL para o motor dela e diz, antes de salvar, se a mudança reinicia a instância. Usuários são endereçados por nome e host; o campo de senha é de escrita apenas.
 
 ### D-06 — Memorystore
 
@@ -152,6 +157,7 @@ O histórico de jobs (os jobs do projeto, filtráveis por principal e estado) ab
 - **Templates de instância:** listar, ver, excluir.
 - **Grupos gerenciados de instâncias:** lista agregada, instâncias, **redimensionar**; rolling updates no L1.
 - As operações do Compute (zonais, regionais, globais) usam o seu adaptador (SPEC-0001 D-09).
+- **Implementação:** pelo kit de recursos. Labels, tags e metadados são enviados com a impressão digital atual lida no momento da ação. A aba Serial output segue `compute.serial` e diz quantos bytes o Google descartou entre duas leituras; a aba Effective firewall mostra as regras efetivas da primeira interface, e a captura de tela só aparece com o display habilitado. As linhas das instâncias de um grupo gerenciado abrem a página da VM.
 
 ### D-08 — Rede VPC
 
@@ -166,6 +172,8 @@ O histórico de jobs (os jobs do projeto, filtráveis por principal e estado) ab
 | Endereços IP externos | L2 | Listar; reservar, liberar (digitado) |
 | VPC peering, Private Service Connect, conectores de Serverless VPC Access | L1 | Listar e ver |
 
+**Implementação:** pelo kit de recursos. Editar uma regra de firewall substitui a regra inteira (`update`), para que trocar permitir por negar limpe a outra lista; protocolos e portas são escritos como `tcp:80,tcp:8000-8080,udp`. Peerings aparecem sob a rede; endpoints do Private Service Connect são as regras de encaminhamento com alvo de serviço publicado, `all-apis` ou `vpc-sc`.
+
 ### D-09 — Topologia de balanceamento de carga (L1)
 
 - **O grafo.** Para cada balanceador de carga, o Nephoscope desenha a cadeia, da esquerda para a direita, com o elkjs (o mesmo motor de layout do grafo do Workflows, SPEC-0003 D-10):
@@ -176,18 +184,21 @@ O histórico de jobs (os jobs do projeto, filtráveis por principal e estado) ab
   - backends: grupos de instâncias, NEGs, buckets.
 - **Anotações:** health checks, certificados SSL (SPEC-0007 D-10) e **políticas do Cloud Armor anexadas** (SPEC-0007 D-09).
 - **Links:** todo nó abre o seu recurso. Um NEG serverless leva ao seu Cloud Run service, function ou app do App Engine.
+- **Implementação:** o servidor monta a topologia a partir das listas agregadas do Compute (regras de encaminhamento, proxies (os de SSL e os backend buckets pela lista global, que é a única que existe), URL maps, backend services e buckets, target pools, NEGs, grupos gerenciados) e agrupa cada balanceador pelo URL map, pelo backend service (passthrough) ou pelo target pool. Os rótulos das arestas de um URL map dizem host e path. Nós sem página no Nephoscope (regras de encaminhamento, proxies, backend services) não têm link; grupos de instâncias só têm quando são gerenciados. Abaixo do diagrama, a mesma cadeia em texto.
 
 ### D-10 — Cloud DNS no L2
 
 - **Zonas gerenciadas:** listar zonas públicas e privadas (nome DNS, estado do DNSSEC, redes de visibilidade); criar; excluir (digitado; precisa estar vazia).
 - **Conjuntos de registros:** listar; adicionar, editar e excluir por **change sets**, mostrando a mudança antes de aplicar. Tipos: A, AAAA, CNAME, MX, TXT, SRV, CAA, NS, PTR. SOA é somente leitura.
 - **L1:** políticas de roteamento (geolocalização, com peso), response policies, políticas de servidor DNS.
+- **Implementação:** as mudanças ficam num change set na página da zona, cada uma desfazível, e são revistas num diálogo com o antes e o depois e os comandos `gcloud dns record-sets` equivalentes, aplicadas numa chamada só. O servidor confere que todo registro está dentro da zona. Conjuntos com política de roteamento aparecem como texto e não são editados aqui. Depois de aplicar, a página acompanha a mudança até o Cloud DNS dizer `done`.
 
 ### D-11 — GKE no L2 (sem workloads)
 
 - **Clusters:** listar entre locations com `locations/-`; detalhe com versão, modo (Autopilot ou Standard), canal de release, rede, endpoint, política de manutenção e upgrades disponíveis.
 - **Node pools:** listar; **redimensionar**; configurações de autoscaling; versão (L1).
 - **Operações:** as operações do cluster, acompanhadas pelo seu adaptador (SPEC-0001 D-09).
+- **Implementação:** pelo kit de recursos. A aba Available versions mostra a `serverConfig` da location do cluster. Um node pool mostra os nós por zona com que foi criado; o total atual de nós fica no cluster.
 - Workloads, services e demais objetos do Kubernetes ficam fora do escopo (§4).
 
 ---
@@ -279,6 +290,8 @@ Todos rodam contra o projeto sandbox da SPEC-0001 Q-02.
 | M6.5 | GKE | M0 |
 | M6.6 | SQL sobre logs (SPEC-0005 D-06) | M6.1 |
 
+**Estado.** O M6 está implementado. Verificado com a API simulada: testes unitários (valores do BigQuery, dry run e erros, regra de somente leitura, família de operação dos jobs, cancelamento pela bandeja, change sets do DNS, topologia, canal `compute.serial`, ações e listas do kit) e testes do Playwright com capturas, mais o axe nos dois temas em 16 telas novas. T-01 a T-14 contra um projeto real dependem da SPEC-0001 Q-02.
+
 ---
 
 ## 11. Riscos e questões em aberto
@@ -303,3 +316,6 @@ Nenhuma.
 |---|---|---|---|
 | 2026-09-28 | 0.1 | | Versão inicial, exportada do plano aprovado: D-01 a D-11, CA-01 a CA-11, NFR-01 a NFR-04, T-01 a T-14, R-01 a R-03 |
 | 2026-09-28 | 0.2 | | **Tradução para o português** (SPEC-0001 D-26) |
+| 2026-10-14 | 0.3 | | **Implementação do M6.**<br>• SDKs: REST pela SPEC-0001 D-29.<br>• D-01: projetos fixados e teto nas preferências; editor de schema em linhas e JSON; propriedades e labels.<br>• D-02: escopo `query` e regra de somente leitura.<br>• D-03: timestamps em microssegundos; grade com janela.<br>• D-04: cancelamento pela bandeja.<br>• D-05, D-07, D-08, D-11: pelo kit, com as abas Flags e Serial output.<br>• D-09: topologia montada no servidor, com o texto equivalente.<br>• D-10: change set desfazível e revisto antes de aplicar.<br>• Estado no plano de entrega. |
+| 2026-10-14 | 0.4 | | Sincronização final do M7 (SPEC-0009 D-07): sem mudanças além da 0.3. |
+| 2026-10-14 | 0.5 | | Validação num contêiner contra um projeto real, só leitura: D-02 passa a recusar em modo somente leitura uma consulta que o dry run não consegue conferir (antes ela rodava); D-09 lê os proxies SSL pela lista global, porque o Compute não tem lista agregada deles (a topologia respondia 404). |

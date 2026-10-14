@@ -35,6 +35,10 @@ function invalidateFor(client: ReturnType<typeof useQueryClient>, op: OperationS
     void client.invalidateQueries({ queryKey: ['services'] });
   }
   void client.invalidateQueries({ queryKey: [op.product] });
+  // Kit pages key their queries by collection (`['kit', profile, project, 'product/collection']`).
+  void client.invalidateQueries({
+    predicate: (q) => q.queryKey[0] === 'kit' && typeof q.queryKey[3] === 'string' && q.queryKey[3].startsWith(`${op.product}/`),
+  });
 }
 
 /** Keeps the operations store in sync with the `ops` live channel for the active profile. */

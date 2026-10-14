@@ -1,6 +1,15 @@
-import { type LogEntry, type LogPage, type LogSeverity, type LogTailMessage, logSeverities, type Problem } from '@nephoscope/contracts';
-import { ArrowClockwiseIcon, ArrowSquareOutIcon, CaretDownIcon, CaretRightIcon, CopyIcon } from '@phosphor-icons/react';
+import {
+  type LogEntry,
+  type LogPage,
+  type LogSeverity,
+  type LogTailMessage,
+  logSeverities,
+  type Problem,
+  traceIdOf,
+} from '@nephoscope/contracts';
+import { ArrowClockwiseIcon, ArrowSquareOutIcon, CaretDownIcon, CaretRightIcon, CopyIcon, PathIcon } from '@phosphor-icons/react';
 import { useInfiniteQuery } from '@tanstack/react-query';
+import { Link } from '@tanstack/react-router';
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Virtuoso } from 'react-virtuoso';
 import { toast } from 'sonner';
@@ -50,7 +59,7 @@ export function lqlValue(value: unknown): string | null {
 }
 
 function joinFilter(base: string, extra: string, severity: LogSeverity): string {
-  const parts = [`(${base})`];
+  const parts = base.trim() ? [`(${base})`] : [];
   if (extra.trim()) parts.push(`(${extra.trim()})`);
   if (severity !== 'DEFAULT') parts.push(`severity>=${severity}`);
   return parts.join(' AND ');
@@ -77,13 +86,16 @@ const EntryRow = memo(function EntryRow({
   expanded,
   onToggle,
   onShowMatching,
+  projectId,
 }: {
   entry: LogEntry;
   expanded: boolean;
   onToggle: () => void;
   onShowMatching: (pointer: string, value: unknown) => void;
+  projectId: string;
 }) {
   const mark = SEVERITY_MARK[entry.severity];
+  const traceId = traceIdOf(entry.trace);
   return (
     <div className="border-b border-rule">
       <button
@@ -106,6 +118,13 @@ const EntryRow = memo(function EntryRow({
       </button>
       {expanded ? (
         <div className="px-6 pt-1 pb-3 pl-12">
+          {traceId ? (
+            // SPEC-0005 D-04, D-12: an entry's trace opens in Cloud Trace.
+            <Link to={`/p/${projectId}/trace/${traceId}` as string} className="mb-2 inline-flex items-center gap-1 text-meta">
+              <PathIcon size={12} aria-hidden />
+              Open trace {traceId.slice(0, 8)}
+            </Link>
+          ) : null}
           <JsonTree value={entry.raw} label="Log entry" expandDepth={2} height={420} searchable={false} onShowMatching={onShowMatching} />
         </div>
       ) : null}
@@ -115,12 +134,14 @@ const EntryRow = memo(function EntryRow({
 
 interface LogsPanelProps {
   projectId: string;
-  /** The resource's base filter (SPEC-0003 CA-30). */
+  /** The resource's base filter (SPEC-0003 CA-30), or the Logs Explorer query; empty matches everything. */
   filter: string;
+  /** Logs Explorer: no extra filter field, and "Show matching" goes to the explorer's query (SPEC-0005 D-04). */
+  explorer?: { onShowMatching: (clause: string) => void; onEntries: (entries: LogEntry[]) => void };
 }
 
 /** The shared Logs panel (SPEC-0005 D-01 to D-03, CA-01 to CA-04). */
-export function LogsPanel({ projectId, filter }: LogsPanelProps) {
+export function LogsPanel({ projectId, filter, explorer }: LogsPanelProps) {
   const profileId = useSession((s) => s.profileId);
   const scrollParent = useScrollParent();
   const [range, setRange] = useSearchState<TimeRange>('range', '1h', timeRanges);
@@ -279,8 +300,14 @@ export function LogsPanel({ projectId, filter }: LogsPanelProps) {
       return;
     }
     const clause = `${field}=${v}`;
-    setExtra(extra.trim() ? `${extra.trim()} AND ${clause}` : clause);
+    if (explorer) explorer.onShowMatching(clause);
+    else setExtra(extra.trim() ? `${extra.trim()} AND ${clause}` : clause);
   };
+
+  const onEntries = explorer?.onEntries;
+  useEffect(() => {
+    onEntries?.(rows.flatMap((r) => (r.kind === 'entry' ? [r.entry] : [])));
+  }, [rows, onEntries]);
 
   const notes: Note[] = [];
   if (waitLeft !== null) notes.push({ id: 'quota', tone: 'info', text: `Waiting for Logging quota, about ${waitLeft} s.` });
@@ -298,7 +325,7 @@ export function LogsPanel({ projectId, filter }: LogsPanelProps) {
   }
   if (tailing) notes.push({ id: 'tailing', tone: 'ok', text: 'Live tail is on. New entries appear at the top as they arrive.' });
 
-  const fullFilter = `${tailFilter} AND timestamp>="${since}"`;
+  const fullFilter = `${tailFilter ? `${tailFilter} AND ` : ''}timestamp>="${since}"`;
   const consoleUrl = `https://console.cloud.google.com/logs/query;query=${encodeURIComponent(tailFilter)}?project=${encodeURIComponent(projectId)}`;
 
   return (
@@ -318,20 +345,24 @@ export function LogsPanel({ projectId, filter }: LogsPanelProps) {
             options={logSeverities.map((s) => ({ value: s, label: s === 'DEFAULT' ? 'Any' : SEVERITY_MARK[s].label }))}
           />
         </Field>
-        <form
-          className="flex min-w-72 flex-1 items-end gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            setExtra(draft.trim());
-          }}
-        >
-          <Field label="Extra filter (LQL)" className="flex-1">
-            <Input data-filter-input mono value={draft} onChange={(e) => setDraft(e.target.value)} placeholder='textPayload:"timeout"' />
-          </Field>
-          <Button type="submit" disabled={draft.trim() === extra.trim()}>
-            Apply
-          </Button>
-        </form>
+        {explorer ? (
+          <span className="flex-1" />
+        ) : (
+          <form
+            className="flex min-w-72 flex-1 items-end gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              setExtra(draft.trim());
+            }}
+          >
+            <Field label="Extra filter (LQL)" className="flex-1">
+              <Input data-filter-input mono value={draft} onChange={(e) => setDraft(e.target.value)} placeholder='textPayload:"timeout"' />
+            </Field>
+            <Button type="submit" disabled={draft.trim() === extra.trim()}>
+              Apply
+            </Button>
+          </form>
+        )}
         <div className="flex items-center gap-2 pb-1">
           <Switch checked={tailing} onCheckedChange={setTailing} label="Live tail" />
         </div>
@@ -371,6 +402,7 @@ export function LogsPanel({ projectId, filter }: LogsPanelProps) {
                     })
                   }
                   onShowMatching={showMatching}
+                  projectId={projectId}
                 />
               )
             }
@@ -395,6 +427,11 @@ export function LogsPanel({ projectId, filter }: LogsPanelProps) {
               >
                 Copy filter
               </Button>
+              {explorer ? null : (
+                <Link to={`/p/${projectId}/logging` as string} search={{ q: tailFilter }} className="text-meta">
+                  Open in Logs Explorer
+                </Link>
+              )}
               <a href={consoleUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1 text-meta">
                 Open in Google Cloud console
                 <ArrowSquareOutIcon size={12} aria-hidden />

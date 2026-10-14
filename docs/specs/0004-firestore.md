@@ -8,8 +8,8 @@
 | **Sistemas** | `apps/api/src/products/firestore` (`codec`, `structured-query`, `data`, `admin`, `rules`, `listen`) · `apps/api/src/products/datastore` · `apps/web/src/products/firestore` · `packages/contracts/src/firestore-value.ts` |
 | **SDKs** | `@google-cloud/firestore`: o `v1.FirestoreClient` de baixo nível, o `v1.FirestoreAdminClient` de administração e a classe `Firestore` de alto nível · `@googleapis/firebaserules` · `@google-cloud/datastore` · `@google-cloud/monitoring` (uso) |
 | **Spec relacionada** | [SPEC-0001](./0001-platform.md) (operações, canal ao vivo, confirmações, emuladores D-18) · [SPEC-0002](./0002-design-system.md) · [SPEC-0005](./0005-observability.md) (métricas de uso) · [SPEC-0006](./0006-messaging-storage.md) (buckets do Cloud Storage para export e import) |
-| **Última atualização** | 2026-09-28 |
-| **Versão** | 0.3 |
+| **Última atualização** | 2026-10-14 |
+| **Versão** | 0.4 |
 
 ---
 
@@ -442,3 +442,4 @@ Nenhuma.
 | 2026-09-28 | 0.1 | | Versão inicial, exportada do plano aprovado e da verificação das APIs: D-01 a D-18, CA-01 a CA-22, NFR-01 a NFR-04, T-01 a T-23, R-01 a R-04 |
 | 2026-09-28 | 0.2 | | **Tradução para o português** (SPEC-0001 D-26) |
 | 2026-09-28 | 0.3 | | **Implementação do M2.**<br>• D-01: documentos do listener lidos dos campos de protocolo do snapshot com o mesmo codec; no emulador, `Bearer owner` por chamada.<br>• D-03: campos como propriedades próprias (`__proto__`), `$id` em import e export, inteiros acima de 2^53 com `$int`.<br>• D-05: exclusão recursiva como operação local cancelável (consulta sem tipo e `batchWrite`).<br>• D-06: ordem explícita com `__name__` sempre por último; agregações sem essa ordem; palavras soltas nos filtros como strings.<br>• D-10: aviso e botão para retomar depois de 60 s oculta; linhas atuais sem custo para assinantes novos.<br>• D-13: chaves como literais GQL; páginas de GQL pela consulta interpretada, guardada por 10 minutos.<br>• D-16: lotes de 500 enviados pela página, validação no navegador.<br>• D-18: lista de bancos do emulador e `DATASTORE_EMULATOR_HOST`.<br>• Estado dos cenários no plano de entrega. |
+| 2026-10-14 | 0.4 | | Sincronização final do M7 (SPEC-0009 D-07): nenhuma mudança de comportamento nesta spec durante o M3 a M7. |

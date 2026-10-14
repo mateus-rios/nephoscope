@@ -89,7 +89,7 @@ function WatchPanel({ projectId, topic, readOnly }: { projectId: string; topic: 
   return (
     <div className="flex flex-col">
       <div className="flex flex-wrap items-end gap-3 px-6 pt-3">
-        <Field label="Filter" help='On attributes, such as attributes.type = "order".' className="w-96">
+        <Field label="Filter" help='On attributes, such as attributes.type = "order".' className="w-full max-w-96">
           <Input mono value={filter} onChange={(e) => setFilter(e.target.value)} disabled={on} />
         </Field>
         <Button

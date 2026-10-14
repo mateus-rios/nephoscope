@@ -43,6 +43,43 @@ const ColabRuntimePage = lazyRouteComponent(() => import('../products/colab/Runt
 const ColabTemplatePage = lazyRouteComponent(() => import('../products/colab/TemplatePage'), 'TemplatePage');
 const ColabExecutionPage = lazyRouteComponent(() => import('../products/colab/ExecutionPage'), 'ExecutionPage');
 const ColabSchedulePage = lazyRouteComponent(() => import('../products/colab/SchedulePage'), 'SchedulePage');
+const LoggingPage = lazyRouteComponent(() => import('../products/logging/LoggingPage'), 'LoggingPage');
+const MonitoringPage = lazyRouteComponent(() => import('../products/monitoring/MonitoringPage'), 'MonitoringPage');
+const DashboardPage = lazyRouteComponent(() => import('../products/monitoring/Dashboards'), 'DashboardPage');
+const AlertPolicyPage = lazyRouteComponent(() => import('../products/monitoring/Alerts'), 'AlertPolicyPage');
+const ErrorsPage = lazyRouteComponent(() => import('../products/errorreporting/ErrorsPage'), 'ErrorsPage');
+const ErrorGroupPage = lazyRouteComponent(() => import('../products/errorreporting/ErrorsPage'), 'ErrorGroupPage');
+const TracePage = lazyRouteComponent(() => import('../products/trace/TracePages'), 'TracePage');
+const TraceViewPage = lazyRouteComponent(() => import('../products/trace/TracePages'), 'TraceViewPage');
+const IamPage = lazyRouteComponent(() => import('../products/iam/IamPage'), 'IamPage');
+const ServiceAccountPage = lazyRouteComponent(() => import('../products/iam/ServiceAccounts'), 'ServiceAccountPage');
+const SecretsPage = lazyRouteComponent(() => import('../products/secrets/SecretsPage'), 'SecretsPage');
+const SecretPage = lazyRouteComponent(() => import('../products/secrets/SecretPage'), 'SecretPage');
+const KmsPage = lazyRouteComponent(() => import('../products/kms/KmsPages'), 'KmsPage');
+const KeyRingPage = lazyRouteComponent(() => import('../products/kms/KmsPages'), 'KeyRingPage');
+const CryptoKeyPage = lazyRouteComponent(() => import('../products/kms/KmsPages'), 'CryptoKeyPage');
+const ArmorPage = lazyRouteComponent(() => import('../products/armor/ArmorPages'), 'ArmorPage');
+const ArmorPolicyPage = lazyRouteComponent(() => import('../products/armor/ArmorPages'), 'ArmorPolicyPage');
+const RegistryPage = lazyRouteComponent(() => import('../products/registry/RegistryPages'), 'RegistryPage');
+const RepositoryPage = lazyRouteComponent(() => import('../products/registry/RegistryPages'), 'RepositoryPage');
+const CloudBuildPage = lazyRouteComponent(() => import('../products/delivery/BuildPages'), 'CloudBuildPage');
+const BuildPage = lazyRouteComponent(() => import('../products/delivery/BuildPages'), 'BuildPage');
+const CloudDeployPage = lazyRouteComponent(() => import('../products/delivery/DeployPages'), 'CloudDeployPage');
+const PipelinePage = lazyRouteComponent(() => import('../products/delivery/DeployPages'), 'PipelinePage');
+const BigQueryPage = lazyRouteComponent(() => import('../products/bigquery/BigQueryPages'), 'BigQueryPage');
+const BqDatasetPage = lazyRouteComponent(() => import('../products/bigquery/BigQueryPages'), 'BqDatasetPage');
+const BqTablePage = lazyRouteComponent(() => import('../products/bigquery/BigQueryPages'), 'BqTablePage');
+const DnsPage = lazyRouteComponent(() => import('../products/dns/DnsPages'), 'DnsPage');
+const DnsZonePage = lazyRouteComponent(() => import('../products/dns/DnsPages'), 'DnsZonePage');
+const LoadBalancingPage = lazyRouteComponent(() => import('../products/loadbalancing/LoadBalancingPage'), 'LoadBalancingPage');
+const AppEnginePage = lazyRouteComponent(() => import('../products/appengine/AppEnginePage'), 'AppEnginePage');
+const RawApiPage = lazyRouteComponent(() => import('../products/rawapi/RawApiPage'), 'RawApiPage');
+const BillingPage = lazyRouteComponent(() => import('../products/governance/GovernancePages'), 'BillingPage');
+const QuotasPage = lazyRouteComponent(() => import('../products/governance/GovernancePages'), 'QuotasPage');
+const RecommendationsPage = lazyRouteComponent(() => import('../products/governance/GovernancePages'), 'RecommendationsPage');
+const OrgPoliciesPage = lazyRouteComponent(() => import('../products/governance/GovernancePages'), 'OrgPoliciesPage');
+const KitProductPage = lazyRouteComponent(() => import('../products/kit/KitProductPage'), 'KitProductPage');
+const KitItemPage = lazyRouteComponent(() => import('../products/kit/KitItemPage'), 'KitItemPage');
 
 function RootLayout() {
   const theme = useSession((s) => s.theme);
@@ -108,6 +145,44 @@ const runRoutes = [
   productRoute('/colab/templates/$location/$template', ColabTemplatePage),
   productRoute('/colab/executions/$location/$execution', ColabExecutionPage),
   productRoute('/colab/schedules/$location/$schedule', ColabSchedulePage),
+  productRoute('/logging', LoggingPage),
+  productRoute('/monitoring', MonitoringPage),
+  productRoute('/monitoring/dashboards/$dashboard', DashboardPage),
+  productRoute('/monitoring/alerts/$policy', AlertPolicyPage),
+  productRoute('/errorreporting', ErrorsPage),
+  productRoute('/errorreporting/$group', ErrorGroupPage),
+  productRoute('/trace', TracePage),
+  productRoute('/trace/$traceId', TraceViewPage),
+  productRoute('/iam', IamPage),
+  productRoute('/iam/serviceaccounts/$email', ServiceAccountPage),
+  productRoute('/secretmanager', SecretsPage),
+  productRoute('/secretmanager/$location/$secret', SecretPage),
+  productRoute('/kms', KmsPage),
+  productRoute('/kms/$location/$ring', KeyRingPage),
+  productRoute('/kms/$location/$ring/$key', CryptoKeyPage),
+  productRoute('/armor', ArmorPage),
+  productRoute('/armor/$scope/$policy', ArmorPolicyPage),
+  productRoute('/artifactregistry', RegistryPage),
+  productRoute('/artifactregistry/$location/$repo', RepositoryPage),
+  productRoute('/cloudbuild', CloudBuildPage),
+  productRoute('/cloudbuild/builds/$location/$build', BuildPage),
+  productRoute('/clouddeploy', CloudDeployPage),
+  productRoute('/clouddeploy/$location/$pipeline', PipelinePage),
+  productRoute('/bigquery', BigQueryPage),
+  productRoute('/bigquery/$dsProject/$dataset', BqDatasetPage),
+  productRoute('/bigquery/$dsProject/$dataset/$table', BqTablePage),
+  productRoute('/dns', DnsPage),
+  productRoute('/dns/$zone', DnsZonePage),
+  productRoute('/loadbalancing', LoadBalancingPage),
+  productRoute('/appengine', AppEnginePage),
+  productRoute('/rawapi', RawApiPage),
+  productRoute('/billing', BillingPage),
+  productRoute('/quotas', QuotasPage),
+  productRoute('/recommender', RecommendationsPage),
+  productRoute('/orgpolicy', OrgPoliciesPage),
+  // Resource kit pages (SPEC-0001 D-16): any product without a page of its own, and kit resources.
+  productRoute('/r/$product/$collection/$', KitItemPage),
+  productRoute('/$product', KitProductPage),
 ];
 
 const kitRoute = createRoute({ getParentRoute: () => rootRoute, path: '/_kit', component: import.meta.env.DEV ? KitPage : NotFoundPage });

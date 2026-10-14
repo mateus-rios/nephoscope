@@ -14,7 +14,7 @@ const MAX_BACKOFF_MS = 120_000;
 
 /** Joins LQL clauses; each is parenthesized so user text cannot change the base filter's meaning. */
 export function buildFilter(q: Pick<LogQuery, 'filter' | 'extra' | 'minSeverity' | 'since' | 'until'>): string {
-  const clauses = [`(${q.filter})`];
+  const clauses = q.filter.trim() ? [`(${q.filter})`] : [];
   if (q.extra?.trim()) clauses.push(`(${q.extra.trim()})`);
   if (q.minSeverity && q.minSeverity !== 'DEFAULT') clauses.push(`severity>=${q.minSeverity}`);
   clauses.push(`timestamp>="${q.since}"`);
@@ -48,6 +48,21 @@ export class LogsService {
 
   async list(h: ProfileHandle, projectId: string, q: LogQuery): Promise<LogPage> {
     this.guard(projectId);
+    return this.read(h, projectId, q);
+  }
+
+  /**
+   * For downloads (SPEC-0005 D-04): waits for a slot of the same per-project budget instead of
+   * answering at once, since one download reads up to ten pages in a row.
+   */
+  async listWaiting(h: ProfileHandle, projectId: string, q: LogQuery, signal?: AbortSignal): Promise<LogPage> {
+    const b = this.backoff.get(projectId);
+    if (b && b.until > Date.now()) throw this.waitProblem(b.until - Date.now(), 'Google reported the Logging read quota as exhausted.');
+    await this.limiter.acquire(projectId, signal);
+    return this.read(h, projectId, q);
+  }
+
+  private async read(h: ProfileHandle, projectId: string, q: LogQuery): Promise<LogPage> {
     try {
       const res = await h.auth.request<{ entries?: Record<string, unknown>[]; nextPageToken?: string }>({
         url: ENTRIES_LIST,

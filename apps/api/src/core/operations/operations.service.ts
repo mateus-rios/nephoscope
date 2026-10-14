@@ -24,6 +24,8 @@ export interface TrackInput {
   resource: OperationSummary['resource'];
   googleName: string | null;
   poll: Poller;
+  /** Asks Google to stop the work, such as a BigQuery job; the poll then sees the end. */
+  cancel?: () => Promise<void>;
 }
 
 /** Rebuilds a poller for an operation found in operations.json after a restart (SPEC-0001 CA-35). */
@@ -44,7 +46,9 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
   private readonly timers = new Map<string, NodeJS.Timeout>();
   private readonly listeners = new Set<Listener>();
   private readonly resumers = new Map<string, Resumer>();
+  private readonly fallbacks: Resumer[] = [];
   private readonly aborters = new Map<string, AbortController>();
+  private readonly cancellers = new Map<string, () => Promise<void>>();
   private stopped = false;
 
   constructor(private readonly store: JsonStore) {}
@@ -53,6 +57,7 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
     const saved = await this.store.read<OperationSummary[]>(OPERATIONS_FILE, []);
     for (const op of saved.slice(-KEEP)) this.ops.set(op.id, op);
     for (const [kind, resumer] of this.resumers) this.resumeKind(kind, resumer);
+    for (const resumer of this.fallbacks) this.resumeAny(resumer);
     // Operations of products never opened in this session cannot be polled: mark them unknown.
     const grace = setTimeout(() => {
       for (const op of this.ops.values()) {
@@ -72,6 +77,21 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
         else this.finish(op.id, { status: 'unknown', message: 'Status unknown after a restart' });
       }
     }
+  }
+
+  /** Resumes running operations no kind resumer took, when `resumer` recognizes them. */
+  private resumeAny(resumer: Resumer): void {
+    for (const op of this.ops.values()) {
+      if (op.status !== 'running' || this.timers.has(op.id) || this.resumers.has(op.kind)) continue;
+      const poll = resumer(op);
+      if (poll) this.schedule(op.id, poll, 0);
+    }
+  }
+
+  /** Registers a resumer for operations of any kind, such as those polled by URL (SPEC-0001 D-09). */
+  registerFallbackResumer(resumer: Resumer): void {
+    this.fallbacks.push(resumer);
+    this.resumeAny(resumer);
   }
 
   /** Registers how to resume operations of a kind after a restart. Called by product modules. */
@@ -117,7 +137,9 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
       finishedAt: null,
       error: null,
       googleName: input.googleName,
+      ...(input.cancel ? { cancellable: true } : {}),
     };
+    if (input.cancel) this.cancellers.set(op.id, input.cancel);
     this.ops.set(op.id, op);
     this.emit(op);
     this.schedule(op.id, input.poll, 0);
@@ -181,11 +203,16 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
     return op;
   }
 
-  /** Stops a running local operation; returns false when it cannot be cancelled. */
+  /** Stops a running local operation, or asks Google to; returns false when it cannot be cancelled. */
   cancel(id: string): boolean {
     const abort = this.aborters.get(id);
-    if (!abort) return false;
-    abort.abort();
+    if (abort) {
+      abort.abort();
+      return true;
+    }
+    const cancel = this.cancellers.get(id);
+    if (!cancel) return false;
+    void cancel().catch((err: unknown) => this.logger.warn({ msg: 'Cancel request failed', id, error: String(err) }));
     return true;
   }
 
@@ -253,7 +280,13 @@ export class OperationsService implements OnModuleInit, OnModuleDestroy {
   private finish(id: string, patch: Partial<OperationSummary>): void {
     const op = this.ops.get(id);
     if (!op) return;
-    const next: OperationSummary = { ...op, ...patch, finishedAt: new Date().toISOString() };
+    this.cancellers.delete(id);
+    const next: OperationSummary = {
+      ...op,
+      ...(op.cancellable ? { cancellable: false } : {}),
+      ...patch,
+      finishedAt: new Date().toISOString(),
+    };
     this.ops.set(id, next);
     this.emit(next);
     void this.persist();

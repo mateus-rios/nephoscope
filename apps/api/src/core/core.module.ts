@@ -6,6 +6,7 @@ import { CapabilitiesService } from './capabilities/capabilities.service.js';
 import { NEPHOSCOPE_CONFIG, type NephoscopeConfig } from './config/config.js';
 import { ProfilesService } from './credentials/profiles.service.js';
 import { GcpClientFactory } from './gcp/client-factory.js';
+import { RestOperations } from './gcp/rest-ops.js';
 import { InvokeService } from './invoke/invoke.service.js';
 import { LiveGateway } from './live/live.gateway.js';
 import { OperationsService } from './operations/operations.service.js';
@@ -20,6 +21,7 @@ const shared = [
   GcpClientFactory,
   AuditService,
   OperationsService,
+  RestOperations,
   CapabilitiesService,
   PrefsService,
   HistoryService,

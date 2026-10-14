@@ -20,9 +20,9 @@ export class HistoryService {
     return all[key] ?? [];
   }
 
-  async add(key: string, value: string): Promise<string[]> {
+  async add(key: string, value: string, limit = PER_KEY): Promise<string[]> {
     const all = await this.store.read<History>(FILE, {});
-    const list = [value, ...(all[key] ?? []).filter((v) => v !== value)].slice(0, PER_KEY);
+    const list = [value, ...(all[key] ?? []).filter((v) => v !== value)].slice(0, limit);
     // Re-inserting moves the key to the end, so the oldest keys come first when trimming.
     delete all[key];
     all[key] = list;
